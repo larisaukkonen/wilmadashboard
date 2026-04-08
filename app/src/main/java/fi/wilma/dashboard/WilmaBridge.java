@@ -301,19 +301,18 @@ public class WilmaBridge {
         String password = prefs.getString(KEY_PASS, "");
         if (baseUrl.isEmpty()) throw new Exception("Not configured");
 
-        // Re-use existing session; only login if needed
-        if (!hasSession()) {
-            doLogin(baseUrl, username, password);
-        }
+        // Always start with a fresh login.
+        // wilmai does exactly the same: it creates a new cookieless session
+        // so that GET / returns the parent home page listing ALL children.
+        // Reusing an existing session causes Wilma to redirect / to the
+        // last-selected student's page, hiding the other child entirely.
+        resetCookies();
+        doLogin(baseUrl, username, password);
 
-        // Fetch student list — Wilma often redirects / to a student-specific
-        // page. We capture the redirect target AND parse both pages so we find
-        // all students even when the default student is pre-selected.
-        String homeHtml = fetchStudentListHtml(baseUrl);
+        // GET / immediately after fresh login — no student pre-selected yet
+        String homeHtml = httpGet(baseUrl + "/");
         if (looksLikeLoginPage(homeHtml)) {
-            resetCookies();
-            doLogin(baseUrl, username, password);
-            homeHtml = fetchStudentListHtml(baseUrl);
+            throw new Exception("Kirjautuminen epäonnistui");
         }
 
         List<String[]> students = parseStudents(homeHtml);
@@ -347,41 +346,6 @@ public class WilmaBridge {
             }
         }
         return result.toString();
-    }
-
-    /**
-     * Fetch HTML that contains student links.
-     *
-     * Wilma may redirect GET / → GET /!12345/ (the last-selected student).
-     * That student-specific page still contains the student-switcher widget
-     * with links for ALL students. We manually follow the redirect so we can
-     * combine both bodies and maximise the chance of finding every child.
-     */
-    private String fetchStudentListHtml(String baseUrl) throws IOException {
-        HttpURLConnection conn = openConnection(baseUrl + "/");
-        conn.setRequestMethod("GET");
-        conn.setInstanceFollowRedirects(false);   // <-- do NOT auto-follow
-        sendCookies(conn, baseUrl + "/");
-
-        int status = conn.getResponseCode();
-        String location = conn.getHeaderField("Location");
-        collectCookies(conn, baseUrl + "/");
-        String body = readAndClose(conn);
-
-        // If redirected, also fetch the redirect target
-        if ((status == 301 || status == 302 || status == 303) && location != null && !location.isEmpty()) {
-            if (!location.startsWith("http")) {
-                location = baseUrl + (location.startsWith("/") ? "" : "/") + location;
-            }
-            try {
-                String redirectBody = httpGet(location);
-                // Combine both — the root body may have a student switcher,
-                // the redirect target definitely has student nav links.
-                return (body != null ? body : "") + "\n" + (redirectBody != null ? redirectBody : "");
-            } catch (Exception ignored) {}
-        }
-
-        return body != null ? body : "";
     }
 
     private boolean looksLikeLoginPage(String html) {
