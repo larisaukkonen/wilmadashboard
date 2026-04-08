@@ -32,31 +32,32 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
 /* ── SETUP BACKGROUNDS ───────────────────────────────── */
 .setup-bg {
   background:#0d1117; color:#c9d1d9; z-index:100;
-  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
-  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
-  display:-webkit-box; display:-webkit-flex; display:flex;
+  text-align:center;
+}
+/* Vertical centering without flex */
+.setup-bg:before {
+  content:''; display:inline-block; height:100%; vertical-align:middle;
 }
 .setup-card {
+  display:inline-block; vertical-align:middle; text-align:left;
   background:#161b22; border:1px solid #30363d; border-radius:12px;
   padding:32px; width:92%; max-width:460px;
 }
 .setup-card h1 { font-family:'Syne','Arial Black',sans-serif; font-size:20px; color:#e6edf3; margin-bottom:6px; }
 .setup-card p  { font-size:13px; color:#8b949e; margin-bottom:22px; }
 
-/* Language pick */
-.lang-row {
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  margin-bottom:8px;
-}
+/* Language pick — two equal buttons side by side */
+.lang-row { margin-bottom:8px; }
+.lang-row:after { content:''; display:block; clear:both; }
 .lang-btn {
-  -webkit-box-flex:1; -webkit-flex:1; flex:1;
-  padding:18px 8px; margin:0 6px;
+  float:left; width:48%; margin-right:4%;
+  padding:18px 8px;
   background:#0d1117; border:2px solid #30363d; border-radius:10px;
   color:#c9d1d9; font-size:22px; cursor:pointer;
   text-align:center; -webkit-appearance:none;
+  -webkit-box-sizing:border-box; box-sizing:border-box;
 }
-.lang-btn:first-child { margin-left:0; }
-.lang-btn:last-child  { margin-right:0; }
+.lang-btn:last-child { margin-right:0; }
 .lang-btn span  { display:block; font-size:13px; margin-top:4px; opacity:0.6; }
 .lang-btn.sel   { border-color:#388bfd; background:rgba(56,139,253,0.1); }
 .lang-btn:active { opacity:0.7; }
@@ -67,6 +68,7 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
 .fgroup input {
   width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px;
   color:#e6edf3; padding:10px 12px; font-size:15px; outline:none; -webkit-appearance:none;
+  -webkit-box-sizing:border-box; box-sizing:border-box;
 }
 .fgroup .hint { font-size:11px; color:#484f58; margin-top:4px; }
 .btn-main {
@@ -80,24 +82,30 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
 /* ── LOADING ─────────────────────────────────────────── */
 #screen-loading {
   background:#080b10; color:#555; z-index:90; font-size:16px;
-  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
-  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
-  display:-webkit-box; display:-webkit-flex; display:flex;
+  text-align:center;
+}
+#screen-loading:before {
+  content:''; display:inline-block; height:100%; vertical-align:middle;
+}
+#screen-loading > div {
+  display:inline-block; vertical-align:middle;
 }
 
 /* ── DASHBOARD ───────────────────────────────────────── */
-#screen-dash { z-index:10; overflow:hidden; -webkit-box-orient:vertical; -webkit-flex-direction:column; flex-direction:column; display:-webkit-box; display:-webkit-flex; display:flex; }
+/* No flexbox — use absolute positioning for header and grid.
+   Works on every WebKit since 420 and Android 4.x.          */
+#screen-dash { z-index:10; overflow:hidden; }
 
 .dash-header {
-  -webkit-flex-shrink:0; flex-shrink:0;
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  -webkit-box-pack:justify; -webkit-justify-content:space-between; justify-content:space-between;
-  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
-  padding:0 18px; height:58px;
+  position:absolute; top:0; left:0; right:0; height:58px;
+  overflow:hidden;
 }
+/* Left-side clock, right-side logo using floats */
+.dash-header:after { content:''; display:block; clear:both; }
 body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(8,11,16,0.92); }
 body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:rgba(240,244,248,0.92); }
 
+.clock-block { float:left; padding:8px 18px; }
 .clock-time {
   font-family:'Syne','Arial Black',sans-serif; font-size:26px; font-weight:700;
   letter-spacing:0.06em; line-height:1;
@@ -107,14 +115,12 @@ body.dark  .clock-date { color:rgba(255,255,255,0.22); }
 body.light .clock-date { color:rgba(0,0,0,0.4); }
 
 .logo {
+  float:right; padding:8px 18px;
   font-family:'Syne','Arial Black',sans-serif; font-weight:800; font-size:14px;
-  letter-spacing:0.12em; text-transform:uppercase;
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  letter-spacing:0.12em; text-transform:uppercase; line-height:42px;
 }
 body.dark  .logo { color:rgba(221,227,240,0.5); }
 body.light .logo { color:rgba(26,29,46,0.4); }
-
 .logo-dot {
   width:7px; height:7px; border-radius:50%;
   background:#5bc4f5; margin-right:8px; display:inline-block;
@@ -122,66 +128,52 @@ body.light .logo { color:rgba(26,29,46,0.4); }
 }
 
 /* ── STUDENT GRID ────────────────────────────────────── */
+/* Absolutely fills the space below the header.
+   Columns are inline-block; widths set by layoutGrid() JS. */
 .grid {
-  -webkit-flex:1; flex:1; min-height:0;
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  -webkit-box-orient:horizontal; -webkit-flex-direction:row; flex-direction:row;
+  position:absolute; top:58px; left:0; right:0; bottom:0;
   overflow:hidden;
+  white-space:nowrap; /* keeps inline-block cols on one line */
+  font-size:0;        /* removes gaps between inline-block   */
 }
 
 /* ── COLUMN ──────────────────────────────────────────── */
 .col {
-  -webkit-box-flex:1; -webkit-flex:1; flex:1;
-  min-width:0; min-height:0;
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  -webkit-box-orient:vertical; -webkit-flex-direction:column; flex-direction:column;
+  display:inline-block; vertical-align:top;
+  white-space:normal; /* restore inside column              */
   overflow:hidden; cursor:pointer; position:relative;
-  -webkit-transition:-webkit-flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
-  transition:flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  /* width and height set by layoutGrid() JS */
+  -webkit-box-sizing:border-box; box-sizing:border-box;
 }
-
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
 body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
-.col:last-child  { border-right:none !important; }
+.col:last-child { border-right:none !important; }
 
-.col.expanded  { -webkit-box-flex:3.2; -webkit-flex:3.2; flex:3.2; cursor:default; }
-.col.collapsed { -webkit-box-flex:0.38; -webkit-flex:0.38; flex:0.38; opacity:0.45; }
-body.dark  .col.expanded { background:rgba(255,255,255,0.015); }
-body.light .col.expanded { background:rgba(0,0,0,0.02); }
+/* Expanded/collapsed state: width set by JS; opacity via CSS */
+.col.col-collapsed { opacity:0.4; }
+body.dark  .col.col-expanded { background:rgba(255,255,255,0.015); }
+body.light .col.col-expanded { background:rgba(0,0,0,0.02); }
 
 /* ── COLUMN HEADER ───────────────────────────────────── */
 .col-head {
-  -webkit-flex-shrink:0; flex-shrink:0;
-  padding:13px 13px 9px; border-bottom:2px solid;
-  position:relative;
+  padding:11px 12px 8px; border-bottom:2px solid;
+  position:relative; overflow:hidden;
   -webkit-user-select:none; user-select:none;
 }
 .kid-name {
   font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:15px;
   letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  -webkit-transition:opacity 0.25s; transition:opacity 0.25s;
 }
 .kid-grade {
   font-size:10px; letter-spacing:0.08em; text-transform:uppercase; margin-top:2px;
   white-space:nowrap; overflow:hidden;
-  -webkit-transition:opacity 0.2s; transition:opacity 0.2s;
 }
 body.dark  .kid-grade { color:rgba(255,255,255,0.22); }
 body.light .kid-grade { color:rgba(0,0,0,0.4); }
-.col.collapsed .kid-name,
-.col.collapsed .kid-grade { opacity:0; }
 
-/* Rotated name shown when collapsed */
-.col-rotated {
-  position:absolute; top:50%; left:50%;
-  -webkit-transform:translate(-50%,-50%) rotate(-90deg);
-  transform:translate(-50%,-50%) rotate(-90deg);
-  white-space:nowrap;
-  font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:11px;
-  letter-spacing:0.1em; pointer-events:none; opacity:0;
-  -webkit-transition:opacity 0.22s ease 0.08s; transition:opacity 0.22s ease 0.08s;
-}
-.col.collapsed .col-rotated { opacity:0.8; }
+/* Hide name text when collapsed — column too narrow to read */
+.col.col-collapsed .kid-name,
+.col.col-collapsed .kid-grade { opacity:0; }
 
 /* Per-kid accent colors */
 .col:nth-child(1) .col-head { border-color:#5bc4f5; }
@@ -196,12 +188,6 @@ body.light .kid-grade { color:rgba(0,0,0,0.4); }
 .col:nth-child(4) .kid-name { color:#c97cf5; }
 .col:nth-child(5) .kid-name { color:#f5736e; }
 
-.col:nth-child(1) .col-rotated { color:#5bc4f5; }
-.col:nth-child(2) .col-rotated { color:#7dd98a; }
-.col:nth-child(3) .col-rotated { color:#f5c842; }
-.col:nth-child(4) .col-rotated { color:#c97cf5; }
-.col:nth-child(5) .col-rotated { color:#f5736e; }
-
 body.light .col:nth-child(1) .kid-name { color:#0288d1; }
 body.light .col:nth-child(2) .kid-name { color:#2e7d32; }
 body.light .col:nth-child(3) .kid-name { color:#e65100; }
@@ -214,18 +200,14 @@ body.light .col:nth-child(3) .col-head { border-color:#e65100; }
 body.light .col:nth-child(4) .col-head { border-color:#7b1fa2; }
 body.light .col:nth-child(5) .col-head { border-color:#c62828; }
 
-body.light .col:nth-child(1) .col-rotated { color:#0288d1; }
-body.light .col:nth-child(2) .col-rotated { color:#2e7d32; }
-body.light .col:nth-child(3) .col-rotated { color:#e65100; }
-body.light .col:nth-child(4) .col-rotated { color:#7b1fa2; }
-body.light .col:nth-child(5) .col-rotated { color:#c62828; }
-
 /* ── COLUMN BODY ─────────────────────────────────────── */
+/* height set by layoutGrid() JS so overflow-y scrolls correctly */
 .col-body {
-  -webkit-flex:1; flex:1; overflow-y:auto; padding:10px 13px 14px;
-  -webkit-transition:opacity 0.18s ease; transition:opacity 0.18s ease;
+  overflow-y:auto; overflow-x:hidden;
+  padding:8px 12px 14px;
+  -webkit-overflow-scrolling:touch;
 }
-.col.collapsed .col-body { opacity:0; pointer-events:none; overflow:hidden; }
+.col.col-collapsed .col-body { opacity:0; overflow:hidden; }
 
 /* ── SECTIONS ────────────────────────────────────────── */
 .sec { margin-bottom:14px; }
@@ -237,17 +219,19 @@ body.dark  .sec-title { color:rgba(255,255,255,0.22); border-bottom:1px solid rg
 body.light .sec-title { color:rgba(0,0,0,0.35); border-bottom:1px solid rgba(0,0,0,0.07); }
 
 .lesson {
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  -webkit-box-align:baseline; -webkit-align-items:baseline; align-items:baseline;
   padding:4px 0;
+  /* Use inline-block instead of flex for old WebKit compatibility */
 }
 body.dark  .lesson { border-bottom:1px solid rgba(255,255,255,0.03); }
 body.light .lesson { border-bottom:1px solid rgba(0,0,0,0.04); }
 .lesson:last-child { border-bottom:none; }
-.lesson-time { font-size:10px; white-space:nowrap; min-width:82px; -webkit-flex-shrink:0; flex-shrink:0; margin-right:8px; }
+.lesson-time {
+  display:inline-block; vertical-align:middle;
+  font-size:10px; white-space:nowrap; width:88px; margin-right:6px;
+}
 body.dark  .lesson-time { color:rgba(255,255,255,0.22); }
 body.light .lesson-time { color:rgba(0,0,0,0.4); }
-.lesson-subj { font-size:12px; line-height:1.4; }
+.lesson-subj { display:inline-block; vertical-align:middle; font-size:12px; line-height:1.4; }
 
 .exam {
   padding:6px 8px; border-radius:5px; border-left:2px solid; margin-bottom:5px;
@@ -284,41 +268,19 @@ body.light .hw-subj { color:rgba(0,0,0,0.5); }
 body.dark  .empty { color:rgba(255,255,255,0.2); }
 body.light .empty { color:rgba(0,0,0,0.28); }
 
-/* Timer bar */
-.timer-bar {
-  position:absolute; bottom:0; left:0; height:2px; width:100%;
-  -webkit-transform-origin:left center; transform-origin:left center;
-  opacity:0; pointer-events:none;
-}
-.col:nth-child(1) .timer-bar { background:#5bc4f5; }
-.col:nth-child(2) .timer-bar { background:#7dd98a; }
-.col:nth-child(3) .timer-bar { background:#f5c842; }
-.col:nth-child(4) .timer-bar { background:#c97cf5; }
-.col:nth-child(5) .timer-bar { background:#f5736e; }
-.col.expanded .timer-bar {
-  opacity:0.45;
-  -webkit-animation:depleteBar 30s linear forwards;
-  animation:depleteBar 30s linear forwards;
-}
-@-webkit-keyframes depleteBar {
-  from { -webkit-transform:scaleX(1); }
-  to   { -webkit-transform:scaleX(0); }
-}
-@keyframes depleteBar {
-  from { transform:scaleX(1); }
-  to   { transform:scaleX(0); }
-}
-
 /* ── OVERLAY ─────────────────────────────────────────── */
 #overlay {
   display:none; position:fixed; top:0; left:0; right:0; bottom:0;
   background:rgba(0,0,0,0.75); z-index:150;
-  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
-  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  text-align:center;
 }
-#overlay.vis { display:-webkit-box; display:-webkit-flex; display:flex; }
-
+#overlay.vis { display:block; }
+/* Vertical centering trick without flex */
+#overlay:before {
+  content:''; display:inline-block; height:100%; vertical-align:middle;
+}
 .ov-card {
+  display:inline-block; vertical-align:middle;
   border-radius:16px; padding:28px 32px; min-width:268px; text-align:center;
 }
 body.dark  .ov-card { background:#1c1c28; border:1px solid rgba(255,255,255,0.12); }
@@ -345,18 +307,15 @@ body.dark  .ov-ts { color:rgba(255,255,255,0.28); }
 body.light .ov-ts { color:rgba(0,0,0,0.3); }
 
 /* Lang row inside settings */
-.ov-lang-row {
-  display:-webkit-box; display:-webkit-flex; display:flex;
-  margin-bottom:10px;
-}
+.ov-lang-row { margin-bottom:10px; }
+.ov-lang-row:after { content:''; display:block; clear:both; }
 .ov-lang-btn {
-  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  float:left; width:48%; margin-right:4%;
   padding:12px 6px; border-radius:10px; font-size:20px;
   cursor:pointer; text-align:center; -webkit-appearance:none;
-  margin:0 5px;
+  -webkit-box-sizing:border-box; box-sizing:border-box;
 }
-.ov-lang-btn:first-child { margin-left:0; }
-.ov-lang-btn:last-child  { margin-right:0; }
+.ov-lang-btn:last-child { margin-right:0; }
 body.dark  .ov-lang-btn { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.1); color:#dde3f0; }
 body.light .ov-lang-btn { background:rgba(0,0,0,0.05); border:2px solid rgba(0,0,0,0.1); color:#1a1d2e; }
 .ov-lang-btn.active { border-color:#388bfd !important; background:rgba(56,139,253,0.15) !important; }
@@ -392,7 +351,7 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
     <p id="setup-intro"></p>
     <div class="fgroup">
       <label id="lbl-server"></label>
-      <input type="url" id="inp-url" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="text" id="inp-url" autocomplete="off" autocapitalize="none">
       <div class="hint" id="lbl-hint"></div>
     </div>
     <div class="fgroup">
@@ -401,11 +360,11 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
     </div>
     <div class="fgroup">
       <label id="lbl-user"></label>
-      <input type="text" id="inp-user" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <input type="text" id="inp-user" autocomplete="off" autocapitalize="none">
     </div>
     <div class="fgroup">
       <label id="lbl-pass"></label>
-      <input type="password" id="inp-pass" autocomplete="off" autocapitalize="none">
+      <input type="password" id="inp-pass" autocomplete="off">
     </div>
     <button class="btn-main" id="btn-save"></button>
     <div class="setup-msg" id="setup-msg"></div>
@@ -602,9 +561,9 @@ var S = {
   screen:       '',
   lastData:     null,
   lastUpdatedAt: null,
+  lastActivity: Date.now(),  // timestamp of last user touch
   expandedIdx:  -1,
   collapseTimer: null,
-  wakeTimer:    null,
   pollTimer:    null,
   overlayOpen:  false
 };
@@ -690,57 +649,78 @@ function tickClock() {
 setInterval(tickClock, 10000);
 tickClock();
 
-/* ── Sleep / wake ─────────────────────────────────────── */
+/* ── Sleep / wake ─────────────────────────────────────────
+   Sleep logic:
+   - Active hours (06-22 FI): screen stays on always, auto-wakes
+     if somehow black.
+   - Inactive hours (22-06 FI): screen goes black after 30 seconds
+     of NO user touch. Any touch resets the 30s countdown.
+   - checkSleep runs every 3 seconds so the countdown is accurate.
+   ─────────────────────────────────────────────────────── */
+
+var INACTIVITY_MS = 30000;  // 30 seconds before sleeping (outside hours)
+
 function isActive() {
   try {
     var h = Bridge.getFinnishHour();
-    // Fail-safe: if bridge returns garbage, assume active so we never
-    // accidentally black-screen the user
-    if (typeof h !== 'number' || h < 0 || h > 23) return true;
+    if (typeof h !== 'number' || h < 0 || h > 23) return true; // fail-safe
     return h >= ACTIVE_START && h < ACTIVE_END;
   } catch(e) {
     return true;
   }
 }
 
+/* Record every user touch — resets the inactivity countdown. */
+function recordActivity() {
+  S.lastActivity = Date.now();
+}
+
 function checkSleep() {
   if (S.screen === 'lang' || S.screen === 'setup') return;
-  if (!isActive() && S.screen !== 'black') {
-    goBlack();
-  } else if (isActive() && S.screen === 'black') {
-    wakeUp(false);
+
+  if (isActive()) {
+    // During 06-22: always show dashboard — auto-wake if somehow black
+    if (S.screen === 'black') {
+      showScreen(S.lastData ? 'dash' : 'loading');
+    }
+  } else {
+    // During 22-06: go black only after genuine inactivity
+    var idle = Date.now() - S.lastActivity;
+    if (S.screen !== 'black' && idle >= INACTIVITY_MS) {
+      goBlack();
+    }
   }
 }
-// Delay first sleep check by 2 minutes — always show dashboard on startup
-setTimeout(function() {
-  checkSleep();
-  setInterval(checkSleep, 30000);
-}, 120000);
+// Check every 3 seconds for accurate inactivity detection
+setInterval(checkSleep, 3000);
 
 function goBlack() {
   closeOverlay();
   showScreen('black');
-  if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
 }
 
-function wakeUp(manual) {
+function wakeUp() {
   if (S.screen === 'lang' || S.screen === 'setup') return;
+  recordActivity();
   showScreen(S.lastData ? 'dash' : 'loading');
-  if (manual && !isActive()) {
-    if (S.wakeTimer) clearTimeout(S.wakeTimer);
-    S.wakeTimer = setTimeout(function() { S.wakeTimer = null; goBlack(); }, 30000);
-  }
 }
 
-$('screen-black').onclick = function() { wakeUp(true); };
+$('screen-black').onclick = function() { wakeUp(); };
 
-/* ── Long press → overlay ─────────────────────────────── */
+/* ── Activity recording — catch all touches on dash ──────── */
+/* Also used as the touchstart entry for long-press detection. */
 var lpTimer = null;
 var LP_MS   = 700;
 
-function lpStart()  { if (!S.overlayOpen) lpTimer = setTimeout(function(){ lpTimer=null; openOverlay(); }, LP_MS); }
+function lpStart() {
+  recordActivity(); // every touch = activity
+  if (!S.overlayOpen) lpTimer = setTimeout(function(){ lpTimer=null; openOverlay(); }, LP_MS);
+}
 function lpCancel() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
 
+/* Catch all touches on the dashboard and black screen.
+   Document-wide listeners on old Android can interfere with
+   text input focus and keyboard handling — avoid them.     */
 var dashEl = $('screen-dash');
 dashEl.addEventListener('touchstart',  lpStart,  false);
 dashEl.addEventListener('touchend',    lpCancel, false);
@@ -912,6 +892,48 @@ function startPolling() {
   S.pollTimer = setInterval(doFetch, POLL_MS);
 }
 
+/* ── Layout engine ────────────────────────────────────── */
+/* Sets column widths and col-body heights directly via JS.
+   No flexbox. Works on all Android / WebKit versions.      */
+function layoutGrid() {
+  var grid = $('grid');
+  if (!grid) return;
+  var gridH = grid.offsetHeight;
+  if (!gridH) return;
+  var cols = grid.querySelectorAll('.col');
+  var n = cols.length;
+  if (!n) return;
+
+  // Calculate widths as whole-number percentages
+  var widths = [];
+  if (S.expandedIdx >= 0 && S.expandedIdx < n && n > 1) {
+    var expW = 65;
+    var colW = Math.floor((100 - expW) / (n - 1));
+    var rem  = 100 - expW - colW * (n - 1);
+    for (var i = 0; i < n; i++) {
+      widths.push(i === S.expandedIdx ? expW : (colW + (rem-- > 0 ? 1 : 0)));
+    }
+  } else {
+    var base = Math.floor(100 / n);
+    var rem2 = 100 - base * n;
+    for (var i = 0; i < n; i++) {
+      widths.push(base + (rem2-- > 0 ? 1 : 0));
+    }
+  }
+
+  for (var i = 0; i < n; i++) {
+    var col  = cols[i];
+    var head = col.querySelector('.col-head');
+    var body = col.querySelector('.col-body');
+    col.style.width  = widths[i] + '%';
+    col.style.height = gridH + 'px';
+    if (head && body) {
+      body.style.height = (gridH - head.offsetHeight) + 'px';
+    }
+  }
+}
+window.onresize = function() { layoutGrid(); };
+
 /* ── Dashboard rendering ──────────────────────────────── */
 function renderStudents(students) {
   var grid = $('grid');
@@ -921,13 +943,16 @@ function renderStudents(students) {
   }
   grid.innerHTML = html;
 
-  // Attach column tap handlers
+  // Attach tap handlers (single-arg classList for old Android compat)
   var cols = grid.querySelectorAll('.col');
   for (var j = 0; j < cols.length; j++) {
     (function(el, idx) {
       el.addEventListener('click', function() { expandCol(idx); });
     })(cols[j], j);
   }
+
+  // Brief delay so offsetHeight is readable before we measure
+  setTimeout(layoutGrid, 60);
 }
 
 function renderCol(s, idx) {
@@ -940,7 +965,6 @@ function renderCol(s, idx) {
     + '<div class="col-head">'
     +   '<div class="kid-name">' + esc(s.student || s.name || '') + '</div>'
     +   '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
-    +   '<div class="col-rotated">' + esc(s.student || s.name || '') + '</div>'
     + '</div>'
     + '<div class="col-body">'
     +   sec(t('secToday'),    renderLessons(today))
@@ -948,7 +972,6 @@ function renderCol(s, idx) {
     +   sec(t('secExams'),    renderExams(exams))
     +   sec(t('secHw'),       renderHw(hw))
     + '</div>'
-    + '<div class="timer-bar"></div>'
     + '</div>';
 }
 
@@ -1005,8 +1028,10 @@ function collapseAll() {
   S.expandedIdx = -1;
   var cols = document.querySelectorAll('.col');
   for (var i = 0; i < cols.length; i++) {
-    cols[i].classList.remove('expanded', 'collapsed');
+    cols[i].className = 'col';      // reset state classes in one shot
+    cols[i].style.opacity = '1';
   }
+  layoutGrid();
 }
 
 function expandCol(idx) {
@@ -1015,15 +1040,15 @@ function expandCol(idx) {
   S.expandedIdx = idx;
   var cols = document.querySelectorAll('.col');
   for (var i = 0; i < cols.length; i++) {
-    cols[i].classList.remove('expanded', 'collapsed');
-    cols[i].classList.add(i === idx ? 'expanded' : 'collapsed');
+    if (i === idx) {
+      cols[i].className    = 'col col-expanded';
+      cols[i].style.opacity = '1';
+    } else {
+      cols[i].className    = 'col col-collapsed';
+      cols[i].style.opacity = '0.4';
+    }
   }
-  // Restart CSS animation on timer bar (clone trick)
-  var bar = cols[idx].querySelector('.timer-bar');
-  if (bar) {
-    var fresh = bar.cloneNode(true);
-    bar.parentNode.replaceChild(fresh, bar);
-  }
+  layoutGrid();
   S.collapseTimer = setTimeout(collapseAll, EXPAND_MS);
 }
 
