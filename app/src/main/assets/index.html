@@ -118,17 +118,7 @@ body.light .logo { color:rgba(26,29,46,0.4); }
 .logo-dot {
   width:7px; height:7px; border-radius:50%;
   background:#5bc4f5; margin-right:8px; display:inline-block;
-  box-shadow:0 0 6px #5bc4f5;
-  -webkit-animation:pulse 2.4s ease-in-out infinite;
-  animation:pulse 2.4s ease-in-out infinite;
-}
-@-webkit-keyframes pulse {
-  0%,100% { opacity:1; }
-  50%     { opacity:0.3; }
-}
-@keyframes pulse {
-  0%,100% { opacity:1; }
-  50%     { opacity:0.3; }
+  position:relative; top:-1px;
 }
 
 /* ── STUDENT GRID ────────────────────────────────────── */
@@ -148,26 +138,11 @@ body.light .logo { color:rgba(26,29,46,0.4); }
   overflow:hidden; cursor:pointer; position:relative;
   -webkit-transition:-webkit-flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
   transition:flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
-  -webkit-animation:fadeUp 0.5s ease both;
-  animation:fadeUp 0.5s ease both;
 }
-.col:nth-child(2) { -webkit-animation-delay:0.07s; animation-delay:0.07s; }
-.col:nth-child(3) { -webkit-animation-delay:0.14s; animation-delay:0.14s; }
-.col:nth-child(4) { -webkit-animation-delay:0.21s; animation-delay:0.21s; }
-.col:nth-child(5) { -webkit-animation-delay:0.28s; animation-delay:0.28s; }
 
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
 body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
 .col:last-child  { border-right:none !important; }
-
-@-webkit-keyframes fadeUp {
-  from { opacity:0; -webkit-transform:translateY(10px); }
-  to   { opacity:1; -webkit-transform:translateY(0); }
-}
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(10px); }
-  to   { opacity:1; transform:translateY(0); }
-}
 
 .col.expanded  { -webkit-box-flex:3.2; -webkit-flex:3.2; flex:3.2; cursor:default; }
 .col.collapsed { -webkit-box-flex:0.38; -webkit-flex:0.38; flex:0.38; opacity:0.45; }
@@ -417,20 +392,20 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
     <p id="setup-intro"></p>
     <div class="fgroup">
       <label id="lbl-server"></label>
-      <input type="url" id="inp-url" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <input type="url" id="inp-url" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
       <div class="hint" id="lbl-hint"></div>
     </div>
     <div class="fgroup">
       <label id="lbl-name"></label>
-      <input type="text" id="inp-name" autocomplete="off">
+      <input type="text" id="inp-name" autocomplete="off" autocapitalize="sentences">
     </div>
     <div class="fgroup">
       <label id="lbl-user"></label>
-      <input type="text" id="inp-user" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <input type="text" id="inp-user" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     </div>
     <div class="fgroup">
       <label id="lbl-pass"></label>
-      <input type="password" id="inp-pass" autocomplete="off">
+      <input type="password" id="inp-pass" autocomplete="off" autocapitalize="none">
     </div>
     <button class="btn-main" id="btn-save"></button>
     <div class="setup-msg" id="setup-msg"></div>
@@ -657,8 +632,16 @@ function esc(s) {
 var SCREENS = ['black','lang','setup','loading','dash'];
 function showScreen(name) {
   for (var i = 0; i < SCREENS.length; i++) {
-    var el = $('screen-' + SCREENS[i]);
-    if (el) el.style.display = (SCREENS[i] === name) ? '' : 'none';
+    var scr = SCREENS[i];
+    var el  = $('screen-' + scr);
+    if (!el) continue;
+    if (scr === name) {
+      // Must be explicit — #screen-black has no display in its CSS id rule,
+      // so setting '' would fall through to .screen { display:none }
+      el.style.display = (scr === 'black') ? 'block' : '';
+    } else {
+      el.style.display = 'none';
+    }
   }
   S.screen = name;
 }
@@ -737,13 +720,11 @@ setTimeout(function() {
 function goBlack() {
   closeOverlay();
   showScreen('black');
-  Bridge.setScreenBrightness(0.01);
   if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
 }
 
 function wakeUp(manual) {
   if (S.screen === 'lang' || S.screen === 'setup') return;
-  Bridge.setScreenBrightness(-1);
   showScreen(S.lastData ? 'dash' : 'loading');
   if (manual && !isActive()) {
     if (S.wakeTimer) clearTimeout(S.wakeTimer);
