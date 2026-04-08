@@ -561,9 +561,9 @@ var S = {
   screen:       '',
   lastData:     null,
   lastUpdatedAt: null,
-  lastActivity: Date.now(),  // timestamp of last user touch
   expandedIdx:  -1,
   collapseTimer: null,
+  wakeTimer:    null,
   pollTimer:    null,
   overlayOpen:  false
 };
@@ -650,62 +650,55 @@ setInterval(tickClock, 10000);
 tickClock();
 
 /* ── Sleep / wake ─────────────────────────────────────────
-   Sleep logic:
-   - Active hours (06-22 FI): screen stays on always, auto-wakes
-     if somehow black.
-   - Inactive hours (22-06 FI): screen goes black after 30 seconds
-     of NO user touch. Any touch resets the 30s countdown.
-   - checkSleep runs every 3 seconds so the countdown is accurate.
+   During 06-22 FI: screen always on.
+   Outside 06-22:   go black 10 minutes after the dashboard
+   was last shown or the screen was tapped to wake.
+   Tap on black screen resets the 10-minute countdown.
    ─────────────────────────────────────────────────────── */
 
-var INACTIVITY_MS = 30000;  // 30 seconds before sleeping (outside hours)
+var SLEEP_AFTER_MS = 10 * 60 * 1000; // 10 minutes
 
 function isActive() {
   try {
     var h = Bridge.getFinnishHour();
-    if (typeof h !== 'number' || h < 0 || h > 23) return true; // fail-safe
+    if (typeof h !== 'number' || h < 0 || h > 23) return true;
     return h >= ACTIVE_START && h < ACTIVE_END;
-  } catch(e) {
-    return true;
+  } catch(e) { return true; }
+}
+
+function scheduleSleep() {
+  if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
+  if (!isActive()) {
+    S.wakeTimer = setTimeout(function() { S.wakeTimer = null; goBlack(); }, SLEEP_AFTER_MS);
   }
 }
-
-/* Record every user touch — resets the inactivity countdown. */
-function recordActivity() {
-  S.lastActivity = Date.now();
-}
-
-function checkSleep() {
-  if (S.screen === 'lang' || S.screen === 'setup') return;
-
-  if (isActive()) {
-    // During 06-22: always show dashboard — auto-wake if somehow black
-    if (S.screen === 'black') {
-      showScreen(S.lastData ? 'dash' : 'loading');
-    }
-  } else {
-    // During 22-06: go black only after genuine inactivity
-    var idle = Date.now() - S.lastActivity;
-    if (S.screen !== 'black' && idle >= INACTIVITY_MS) {
-      goBlack();
-    }
-  }
-}
-// Check every 3 seconds for accurate inactivity detection
-setInterval(checkSleep, 3000);
 
 function goBlack() {
   closeOverlay();
+  if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
   showScreen('black');
 }
 
 function wakeUp() {
   if (S.screen === 'lang' || S.screen === 'setup') return;
-  recordActivity();
   showScreen(S.lastData ? 'dash' : 'loading');
+  scheduleSleep();
 }
 
 $('screen-black').onclick = function() { wakeUp(); };
+
+// Check every minute for active-hour transitions
+// (auto-wake at 06:00, schedule sleep if crossing into night)
+function checkSleep() {
+  if (S.screen === 'lang' || S.screen === 'setup') return;
+  if (isActive()) {
+    if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
+    if (S.screen === 'black') showScreen(S.lastData ? 'dash' : 'loading');
+  } else {
+    if (S.screen !== 'black' && !S.wakeTimer) scheduleSleep();
+  }
+}
+setInterval(checkSleep, 60000);
 
 /* ── Activity recording — catch all touches on dash ──────── */
 /* Also used as the touchstart entry for long-press detection. */
@@ -713,7 +706,6 @@ var lpTimer = null;
 var LP_MS   = 700;
 
 function lpStart() {
-  recordActivity(); // every touch = activity
   if (!S.overlayOpen) lpTimer = setTimeout(function(){ lpTimer=null; openOverlay(); }, LP_MS);
 }
 function lpCancel() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
@@ -865,7 +857,10 @@ window.onDataReady = function() {
   var el = $('loading-error');
   if (el) el.style.display = 'none';
   renderStudents(students);
-  if (S.screen === 'loading') showScreen('dash');
+  if (S.screen === 'loading') {
+    showScreen('dash');
+    scheduleSleep(); // start 10-min sleep timer if outside active hours
+  }
 };
 
 window.onDataError = function() {
