@@ -699,8 +699,15 @@ tickClock();
 
 /* ── Sleep / wake ─────────────────────────────────────── */
 function isActive() {
-  var h = Bridge.getFinnishHour();
-  return h >= ACTIVE_START && h < ACTIVE_END;
+  try {
+    var h = Bridge.getFinnishHour();
+    // Fail-safe: if bridge returns garbage, assume active so we never
+    // accidentally black-screen the user
+    if (typeof h !== 'number' || h < 0 || h > 23) return true;
+    return h >= ACTIVE_START && h < ACTIVE_END;
+  } catch(e) {
+    return true;
+  }
 }
 
 function checkSleep() {
@@ -711,7 +718,11 @@ function checkSleep() {
     wakeUp(false);
   }
 }
-setInterval(checkSleep, 30000);
+// Delay first sleep check by 2 minutes — always show dashboard on startup
+setTimeout(function() {
+  checkSleep();
+  setInterval(checkSleep, 30000);
+}, 120000);
 
 function goBlack() {
   closeOverlay();
@@ -873,17 +884,17 @@ window.onDataReady = function(jsonStr) {
   S.lastData      = students;
   S.lastUpdatedAt = new Date().toISOString();
   renderStudents(students);
+  // Always show the dashboard when data arrives — the sleep interval
+  // will handle dimming at the right time, never on first load.
   if (S.screen === 'loading') {
-    checkSleep();
-    if (S.screen === 'loading') showScreen('dash');
+    showScreen('dash');
   }
 };
 
 window.onDataError = function(msg) {
-  // Keep showing previous data on error — data integrity
+  // Data integrity: keep showing last good data on error, never go blank
   if (S.screen === 'loading' && S.lastData) {
-    checkSleep();
-    if (S.screen === 'loading') showScreen('dash');
+    showScreen('dash');
   }
 };
 
@@ -1034,8 +1045,7 @@ function init() {
       if (Array.isArray(students) && students.length) {
         S.lastData = students;
         renderStudents(students);
-        checkSleep();
-        if (S.screen === 'loading') showScreen('dash');
+        showScreen('dash');
       }
     } catch(e) {}
   }
