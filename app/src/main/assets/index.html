@@ -590,17 +590,12 @@ function esc(s) {
 /* ── Screens ──────────────────────────────────────────── */
 var SCREENS = ['black','lang','setup','loading','dash'];
 function showScreen(name) {
+  // Always set explicit display values — never rely on CSS class fallback.
+  // All screens have .screen { display:none } which wins when style is ''.
   for (var i = 0; i < SCREENS.length; i++) {
-    var scr = SCREENS[i];
-    var el  = $('screen-' + scr);
+    var el = $('screen-' + SCREENS[i]);
     if (!el) continue;
-    if (scr === name) {
-      // Must be explicit — #screen-black has no display in its CSS id rule,
-      // so setting '' would fall through to .screen { display:none }
-      el.style.display = (scr === 'black') ? 'block' : '';
-    } else {
-      el.style.display = 'none';
-    }
+    el.style.display = (SCREENS[i] === name) ? 'block' : 'none';
   }
   S.screen = name;
 }
