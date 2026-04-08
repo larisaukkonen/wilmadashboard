@@ -306,12 +306,14 @@ public class WilmaBridge {
             doLogin(baseUrl, username, password);
         }
 
-        // Fetch home page — if redirected to login, re-authenticate
-        String homeHtml = httpGet(baseUrl + "/");
+        // Fetch student list — Wilma often redirects / to a student-specific
+        // page. We capture the redirect target AND parse both pages so we find
+        // all students even when the default student is pre-selected.
+        String homeHtml = fetchStudentListHtml(baseUrl);
         if (looksLikeLoginPage(homeHtml)) {
             resetCookies();
             doLogin(baseUrl, username, password);
-            homeHtml = httpGet(baseUrl + "/");
+            homeHtml = fetchStudentListHtml(baseUrl);
         }
 
         List<String[]> students = parseStudents(homeHtml);
@@ -330,13 +332,13 @@ public class WilmaBridge {
             String num  = student[0];
             String name = student[1];
             try {
-                String raw  = httpGet(baseUrl + "/!" + num + "/overview");
+                String raw = httpGet(baseUrl + "/!" + num + "/overview");
                 JSONObject ov = new JSONObject(raw);
                 result.put(parseStudentData(ov, name, num, today, tomorrow));
             } catch (Exception e) {
                 JSONObject stub = new JSONObject();
-                stub.put("student",       name);
-                stub.put("studentNumber", num);
+                stub.put("student",          name);
+                stub.put("studentNumber",    num);
                 stub.put("todaySchedule",    new JSONArray());
                 stub.put("tomorrowSchedule", new JSONArray());
                 stub.put("upcomingExams",    new JSONArray());
@@ -345,6 +347,41 @@ public class WilmaBridge {
             }
         }
         return result.toString();
+    }
+
+    /**
+     * Fetch HTML that contains student links.
+     *
+     * Wilma may redirect GET / → GET /!12345/ (the last-selected student).
+     * That student-specific page still contains the student-switcher widget
+     * with links for ALL students. We manually follow the redirect so we can
+     * combine both bodies and maximise the chance of finding every child.
+     */
+    private String fetchStudentListHtml(String baseUrl) throws IOException {
+        HttpURLConnection conn = openConnection(baseUrl + "/");
+        conn.setRequestMethod("GET");
+        conn.setInstanceFollowRedirects(false);   // <-- do NOT auto-follow
+        sendCookies(conn, baseUrl + "/");
+
+        int status = conn.getResponseCode();
+        String location = conn.getHeaderField("Location");
+        collectCookies(conn, baseUrl + "/");
+        String body = readAndClose(conn);
+
+        // If redirected, also fetch the redirect target
+        if ((status == 301 || status == 302 || status == 303) && location != null && !location.isEmpty()) {
+            if (!location.startsWith("http")) {
+                location = baseUrl + (location.startsWith("/") ? "" : "/") + location;
+            }
+            try {
+                String redirectBody = httpGet(location);
+                // Combine both — the root body may have a student switcher,
+                // the redirect target definitely has student nav links.
+                return (body != null ? body : "") + "\n" + (redirectBody != null ? redirectBody : "");
+            } catch (Exception ignored) {}
+        }
+
+        return body != null ? body : "";
     }
 
     private boolean looksLikeLoginPage(String html) {
@@ -449,19 +486,25 @@ public class WilmaBridge {
     private List<String[]> parseStudents(String html) {
         List<String[]> list = new java.util.ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
+
+        // Match <a href="...!/NUMBER/..."> or <a href="...!/NUMBER">
+        // Trailing slash after number is optional — some Wilma pages omit it.
         Pattern p = Pattern.compile(
-            "<a[^>]+href=['\"](?:[^'\"]*)/!(\\d+)/[^'\"]*['\"][^>]*>(.*?)</a>",
+            "<a\\b[^>]*href=['\"]([^'\"]*)/!(\\d+)(?:/[^'\"]*)?['\"][^>]*>(.*?)</a>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         Matcher m = p.matcher(html);
         while (m.find()) {
-            String num  = m.group(1);
-            String name = m.group(2).replaceAll("<[^>]+>","").trim()
+            String num     = m.group(2);
+            String rawText = m.group(3);
+            String name    = rawText.replaceAll("<[^>]+>","").trim()
                 .replace("&amp;","&").replace("&lt;","<")
                 .replace("&gt;",">").replace("&nbsp;"," ").trim();
+            // Collapse whitespace (multi-line anchor text)
+            name = name.replaceAll("\\s+", " ").trim();
             if (name.isEmpty() || seen.contains(num)) continue;
             String lower = name.toLowerCase(Locale.ROOT);
             boolean nav = false;
-            for (String kw : NAV_KEYWORDS) { if (lower.contains(kw)) { nav=true; break; } }
+            for (String kw : NAV_KEYWORDS) { if (lower.contains(kw)) { nav = true; break; } }
             if (!nav) { seen.add(num); list.add(new String[]{num, name}); }
         }
         return list;
