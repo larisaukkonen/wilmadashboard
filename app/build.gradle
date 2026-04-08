@@ -1,0 +1,39 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'fi.wilma.dashboard'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "fi.wilma.dashboard"
+        minSdk 17
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // Allow cleartext for local network access
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+dependencies {
+    // No external dependencies — pure Android SDK only
+}

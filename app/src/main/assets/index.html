@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Wilma Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ──────────────────────────────────────────── */
+*,*::before,*::after { -webkit-box-sizing:border-box; box-sizing:border-box; margin:0; padding:0; }
+html,body {
+  width:100%; height:100%; overflow:hidden;
+  font-family:'DM Mono','Courier New',monospace;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+}
+
+/* ── Themes ─────────────────────────────────────────── */
+body.dark  { background:#080b10; color:#dde3f0; }
+body.light { background:#f0f4f8; color:#1a1d2e; }
+
+/* ── Screens ─────────────────────────────────────────── */
+.screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; }
+
+/* ── BLACK SCREEN ────────────────────────────────────── */
+#screen-black { background:#000; z-index:200; }
+
+/* ── SETUP BACKGROUNDS ───────────────────────────────── */
+.setup-bg {
+  background:#0d1117; color:#c9d1d9; z-index:100;
+  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+}
+.setup-card {
+  background:#161b22; border:1px solid #30363d; border-radius:12px;
+  padding:32px; width:92%; max-width:460px;
+}
+.setup-card h1 { font-family:'Syne','Arial Black',sans-serif; font-size:20px; color:#e6edf3; margin-bottom:6px; }
+.setup-card p  { font-size:13px; color:#8b949e; margin-bottom:22px; }
+
+/* Language pick */
+.lang-row {
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  margin-bottom:8px;
+}
+.lang-btn {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  padding:18px 8px; margin:0 6px;
+  background:#0d1117; border:2px solid #30363d; border-radius:10px;
+  color:#c9d1d9; font-size:22px; cursor:pointer;
+  text-align:center; -webkit-appearance:none;
+}
+.lang-btn:first-child { margin-left:0; }
+.lang-btn:last-child  { margin-right:0; }
+.lang-btn span  { display:block; font-size:13px; margin-top:4px; opacity:0.6; }
+.lang-btn.sel   { border-color:#388bfd; background:rgba(56,139,253,0.1); }
+.lang-btn:active { opacity:0.7; }
+
+/* Form */
+.fgroup { margin-bottom:16px; }
+.fgroup label { display:block; font-size:13px; color:#8b949e; margin-bottom:5px; }
+.fgroup input {
+  width:100%; background:#0d1117; border:1px solid #30363d; border-radius:6px;
+  color:#e6edf3; padding:10px 12px; font-size:15px; outline:none; -webkit-appearance:none;
+}
+.fgroup .hint { font-size:11px; color:#484f58; margin-top:4px; }
+.btn-main {
+  width:100%; background:#1f6feb; color:#fff; border:none; border-radius:6px;
+  padding:12px; font-size:16px; cursor:pointer; margin-top:8px; -webkit-appearance:none;
+}
+.btn-main:active { opacity:0.8; }
+.setup-msg { margin-top:12px; font-size:13px; text-align:center; min-height:18px; color:#f85149; }
+.setup-msg.ok { color:#3fb950; }
+
+/* ── LOADING ─────────────────────────────────────────── */
+#screen-loading {
+  background:#080b10; color:#555; z-index:90; font-size:16px;
+  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+}
+
+/* ── DASHBOARD ───────────────────────────────────────── */
+#screen-dash { z-index:10; overflow:hidden; -webkit-box-orient:vertical; -webkit-flex-direction:column; flex-direction:column; display:-webkit-box; display:-webkit-flex; display:flex; }
+
+.dash-header {
+  -webkit-flex-shrink:0; flex-shrink:0;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-pack:justify; -webkit-justify-content:space-between; justify-content:space-between;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  padding:0 18px; height:58px;
+}
+body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(8,11,16,0.92); }
+body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:rgba(240,244,248,0.92); }
+
+.clock-time {
+  font-family:'Syne','Arial Black',sans-serif; font-size:26px; font-weight:700;
+  letter-spacing:0.06em; line-height:1;
+}
+.clock-date { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
+body.dark  .clock-date { color:rgba(255,255,255,0.22); }
+body.light .clock-date { color:rgba(0,0,0,0.4); }
+
+.logo {
+  font-family:'Syne','Arial Black',sans-serif; font-weight:800; font-size:14px;
+  letter-spacing:0.12em; text-transform:uppercase;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+}
+body.dark  .logo { color:rgba(221,227,240,0.5); }
+body.light .logo { color:rgba(26,29,46,0.4); }
+
+.logo-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#5bc4f5; margin-right:8px; display:inline-block;
+  box-shadow:0 0 6px #5bc4f5;
+  -webkit-animation:pulse 2.4s ease-in-out infinite;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+@-webkit-keyframes pulse {
+  0%,100% { opacity:1; }
+  50%     { opacity:0.3; }
+}
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50%     { opacity:0.3; }
+}
+
+/* ── STUDENT GRID ────────────────────────────────────── */
+.grid {
+  -webkit-flex:1; flex:1; min-height:0;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-orient:horizontal; -webkit-flex-direction:row; flex-direction:row;
+  overflow:hidden;
+}
+
+/* ── COLUMN ──────────────────────────────────────────── */
+.col {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  min-width:0; min-height:0;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-orient:vertical; -webkit-flex-direction:column; flex-direction:column;
+  overflow:hidden; cursor:pointer; position:relative;
+  -webkit-transition:-webkit-flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  transition:flex 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  -webkit-animation:fadeUp 0.5s ease both;
+  animation:fadeUp 0.5s ease both;
+}
+.col:nth-child(2) { -webkit-animation-delay:0.07s; animation-delay:0.07s; }
+.col:nth-child(3) { -webkit-animation-delay:0.14s; animation-delay:0.14s; }
+.col:nth-child(4) { -webkit-animation-delay:0.21s; animation-delay:0.21s; }
+.col:nth-child(5) { -webkit-animation-delay:0.28s; animation-delay:0.28s; }
+
+body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
+body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
+.col:last-child  { border-right:none !important; }
+
+@-webkit-keyframes fadeUp {
+  from { opacity:0; -webkit-transform:translateY(10px); }
+  to   { opacity:1; -webkit-transform:translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.col.expanded  { -webkit-box-flex:3.2; -webkit-flex:3.2; flex:3.2; cursor:default; }
+.col.collapsed { -webkit-box-flex:0.38; -webkit-flex:0.38; flex:0.38; opacity:0.45; }
+body.dark  .col.expanded { background:rgba(255,255,255,0.015); }
+body.light .col.expanded { background:rgba(0,0,0,0.02); }
+
+/* ── COLUMN HEADER ───────────────────────────────────── */
+.col-head {
+  -webkit-flex-shrink:0; flex-shrink:0;
+  padding:13px 13px 9px; border-bottom:2px solid;
+  position:relative;
+  -webkit-user-select:none; user-select:none;
+}
+.kid-name {
+  font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:15px;
+  letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  -webkit-transition:opacity 0.25s; transition:opacity 0.25s;
+}
+.kid-grade {
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase; margin-top:2px;
+  white-space:nowrap; overflow:hidden;
+  -webkit-transition:opacity 0.2s; transition:opacity 0.2s;
+}
+body.dark  .kid-grade { color:rgba(255,255,255,0.22); }
+body.light .kid-grade { color:rgba(0,0,0,0.4); }
+.col.collapsed .kid-name,
+.col.collapsed .kid-grade { opacity:0; }
+
+/* Rotated name shown when collapsed */
+.col-rotated {
+  position:absolute; top:50%; left:50%;
+  -webkit-transform:translate(-50%,-50%) rotate(-90deg);
+  transform:translate(-50%,-50%) rotate(-90deg);
+  white-space:nowrap;
+  font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:11px;
+  letter-spacing:0.1em; pointer-events:none; opacity:0;
+  -webkit-transition:opacity 0.22s ease 0.08s; transition:opacity 0.22s ease 0.08s;
+}
+.col.collapsed .col-rotated { opacity:0.8; }
+
+/* Per-kid accent colors */
+.col:nth-child(1) .col-head { border-color:#5bc4f5; }
+.col:nth-child(2) .col-head { border-color:#7dd98a; }
+.col:nth-child(3) .col-head { border-color:#f5c842; }
+.col:nth-child(4) .col-head { border-color:#c97cf5; }
+.col:nth-child(5) .col-head { border-color:#f5736e; }
+
+.col:nth-child(1) .kid-name { color:#5bc4f5; }
+.col:nth-child(2) .kid-name { color:#7dd98a; }
+.col:nth-child(3) .kid-name { color:#f5c842; }
+.col:nth-child(4) .kid-name { color:#c97cf5; }
+.col:nth-child(5) .kid-name { color:#f5736e; }
+
+.col:nth-child(1) .col-rotated { color:#5bc4f5; }
+.col:nth-child(2) .col-rotated { color:#7dd98a; }
+.col:nth-child(3) .col-rotated { color:#f5c842; }
+.col:nth-child(4) .col-rotated { color:#c97cf5; }
+.col:nth-child(5) .col-rotated { color:#f5736e; }
+
+body.light .col:nth-child(1) .kid-name { color:#0288d1; }
+body.light .col:nth-child(2) .kid-name { color:#2e7d32; }
+body.light .col:nth-child(3) .kid-name { color:#e65100; }
+body.light .col:nth-child(4) .kid-name { color:#7b1fa2; }
+body.light .col:nth-child(5) .kid-name { color:#c62828; }
+
+body.light .col:nth-child(1) .col-head { border-color:#0288d1; }
+body.light .col:nth-child(2) .col-head { border-color:#2e7d32; }
+body.light .col:nth-child(3) .col-head { border-color:#e65100; }
+body.light .col:nth-child(4) .col-head { border-color:#7b1fa2; }
+body.light .col:nth-child(5) .col-head { border-color:#c62828; }
+
+body.light .col:nth-child(1) .col-rotated { color:#0288d1; }
+body.light .col:nth-child(2) .col-rotated { color:#2e7d32; }
+body.light .col:nth-child(3) .col-rotated { color:#e65100; }
+body.light .col:nth-child(4) .col-rotated { color:#7b1fa2; }
+body.light .col:nth-child(5) .col-rotated { color:#c62828; }
+
+/* ── COLUMN BODY ─────────────────────────────────────── */
+.col-body {
+  -webkit-flex:1; flex:1; overflow-y:auto; padding:10px 13px 14px;
+  -webkit-transition:opacity 0.18s ease; transition:opacity 0.18s ease;
+}
+.col.collapsed .col-body { opacity:0; pointer-events:none; overflow:hidden; }
+
+/* ── SECTIONS ────────────────────────────────────────── */
+.sec { margin-bottom:14px; }
+.sec-title {
+  font-size:9px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase;
+  margin-bottom:6px; padding-bottom:4px;
+}
+body.dark  .sec-title { color:rgba(255,255,255,0.22); border-bottom:1px solid rgba(255,255,255,0.06); }
+body.light .sec-title { color:rgba(0,0,0,0.35); border-bottom:1px solid rgba(0,0,0,0.07); }
+
+.lesson {
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:baseline; -webkit-align-items:baseline; align-items:baseline;
+  padding:4px 0;
+}
+body.dark  .lesson { border-bottom:1px solid rgba(255,255,255,0.03); }
+body.light .lesson { border-bottom:1px solid rgba(0,0,0,0.04); }
+.lesson:last-child { border-bottom:none; }
+.lesson-time { font-size:10px; white-space:nowrap; min-width:82px; -webkit-flex-shrink:0; flex-shrink:0; margin-right:8px; }
+body.dark  .lesson-time { color:rgba(255,255,255,0.22); }
+body.light .lesson-time { color:rgba(0,0,0,0.4); }
+.lesson-subj { font-size:12px; line-height:1.4; }
+
+.exam {
+  padding:6px 8px; border-radius:5px; border-left:2px solid; margin-bottom:5px;
+}
+body.dark  .exam { background:rgba(255,255,255,0.03); }
+body.light .exam { background:rgba(0,0,0,0.03); }
+.col:nth-child(1) .exam { border-color:#5bc4f5; }
+.col:nth-child(2) .exam { border-color:#7dd98a; }
+.col:nth-child(3) .exam { border-color:#f5c842; }
+.col:nth-child(4) .exam { border-color:#c97cf5; }
+.col:nth-child(5) .exam { border-color:#f5736e; }
+body.light .col:nth-child(1) .exam { border-color:#0288d1; }
+body.light .col:nth-child(2) .exam { border-color:#2e7d32; }
+body.light .col:nth-child(3) .exam { border-color:#e65100; }
+body.light .col:nth-child(4) .exam { border-color:#7b1fa2; }
+body.light .col:nth-child(5) .exam { border-color:#c62828; }
+.exam-date { font-size:10px; font-weight:600; margin-bottom:2px; }
+body.dark  .exam-date { color:rgba(255,255,255,0.55); }
+body.light .exam-date { color:rgba(0,0,0,0.5); }
+.exam-name { font-size:12px; line-height:1.3; }
+.exam-topic { font-size:10px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+body.dark  .exam-topic { color:rgba(255,255,255,0.38); }
+body.light .exam-topic { color:rgba(0,0,0,0.4); }
+
+.hw { padding:5px 8px; border-radius:5px; margin-bottom:5px; }
+body.dark  .hw { background:rgba(255,255,255,0.03); }
+body.light .hw { background:rgba(0,0,0,0.03); }
+.hw-subj { font-size:10px; font-weight:600; margin-bottom:2px; }
+body.dark  .hw-subj { color:rgba(255,255,255,0.55); }
+body.light .hw-subj { color:rgba(0,0,0,0.5); }
+.hw-text { font-size:12px; line-height:1.35; }
+
+.empty { font-size:11px; font-style:italic; padding:2px 0; }
+body.dark  .empty { color:rgba(255,255,255,0.2); }
+body.light .empty { color:rgba(0,0,0,0.28); }
+
+/* Timer bar */
+.timer-bar {
+  position:absolute; bottom:0; left:0; height:2px; width:100%;
+  -webkit-transform-origin:left center; transform-origin:left center;
+  opacity:0; pointer-events:none;
+}
+.col:nth-child(1) .timer-bar { background:#5bc4f5; }
+.col:nth-child(2) .timer-bar { background:#7dd98a; }
+.col:nth-child(3) .timer-bar { background:#f5c842; }
+.col:nth-child(4) .timer-bar { background:#c97cf5; }
+.col:nth-child(5) .timer-bar { background:#f5736e; }
+.col.expanded .timer-bar {
+  opacity:0.45;
+  -webkit-animation:depleteBar 30s linear forwards;
+  animation:depleteBar 30s linear forwards;
+}
+@-webkit-keyframes depleteBar {
+  from { -webkit-transform:scaleX(1); }
+  to   { -webkit-transform:scaleX(0); }
+}
+@keyframes depleteBar {
+  from { transform:scaleX(1); }
+  to   { transform:scaleX(0); }
+}
+
+/* ── OVERLAY ─────────────────────────────────────────── */
+#overlay {
+  display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.75); z-index:150;
+  -webkit-box-pack:center; -webkit-justify-content:center; justify-content:center;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+}
+#overlay.vis { display:-webkit-box; display:-webkit-flex; display:flex; }
+
+.ov-card {
+  border-radius:16px; padding:28px 32px; min-width:268px; text-align:center;
+}
+body.dark  .ov-card { background:#1c1c28; border:1px solid rgba(255,255,255,0.12); }
+body.light .ov-card { background:#fff; border:1px solid rgba(0,0,0,0.12); }
+
+.ov-card h2 {
+  font-family:'Syne','Arial Black',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; margin-bottom:20px;
+}
+body.dark  .ov-card h2 { color:rgba(221,227,240,0.35); }
+body.light .ov-card h2 { color:rgba(26,29,46,0.35); }
+
+.ov-btn {
+  display:block; width:100%; padding:13px 20px; margin-bottom:10px;
+  border-radius:10px; font-size:16px; cursor:pointer; -webkit-appearance:none;
+}
+body.dark  .ov-btn { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:#dde3f0; }
+body.light .ov-btn { background:rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.1); color:#1a1d2e; }
+.ov-btn:last-of-type { margin-bottom:0; }
+.ov-btn:active { opacity:0.7; }
+.ov-btn.danger { background:rgba(248,81,73,0.15) !important; border-color:rgba(248,81,73,0.3) !important; color:#f85149 !important; }
+.ov-ts { font-size:11px; margin-top:14px; }
+body.dark  .ov-ts { color:rgba(255,255,255,0.28); }
+body.light .ov-ts { color:rgba(0,0,0,0.3); }
+
+/* Lang row inside settings */
+.ov-lang-row {
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  margin-bottom:10px;
+}
+.ov-lang-btn {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  padding:12px 6px; border-radius:10px; font-size:20px;
+  cursor:pointer; text-align:center; -webkit-appearance:none;
+  margin:0 5px;
+}
+.ov-lang-btn:first-child { margin-left:0; }
+.ov-lang-btn:last-child  { margin-right:0; }
+body.dark  .ov-lang-btn { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.1); color:#dde3f0; }
+body.light .ov-lang-btn { background:rgba(0,0,0,0.05); border:2px solid rgba(0,0,0,0.1); color:#1a1d2e; }
+.ov-lang-btn.active { border-color:#388bfd !important; background:rgba(56,139,253,0.15) !important; }
+.ov-lang-btn span { display:block; font-size:12px; margin-top:3px; opacity:0.6; }
+.ov-lang-btn:active { opacity:0.7; }
+
+.ov-sec-lbl { font-size:12px; text-align:left; margin-bottom:8px; }
+body.dark  .ov-sec-lbl { color:rgba(255,255,255,0.38); }
+body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
+</style>
+</head>
+<body class="dark">
+
+<!-- BLACK SLEEP -->
+<div id="screen-black" class="screen"></div>
+
+<!-- STEP 1: LANGUAGE -->
+<div id="screen-lang" class="screen setup-bg">
+  <div class="setup-card">
+    <h1>&#x1F3EB; Wilma Dashboard</h1>
+    <p style="margin-bottom:20px">Valitse kieli &bull; Choose language</p>
+    <div class="lang-row">
+      <button class="lang-btn" id="btn-lang-fi">&#x1F1EB;&#x1F1EE;<span>Suomi</span></button>
+      <button class="lang-btn" id="btn-lang-en">&#x1F1EC;&#x1F1E7;<span>English</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: CREDENTIALS -->
+<div id="screen-setup" class="screen setup-bg">
+  <div class="setup-card">
+    <h1>&#x1F3EB; Wilma Dashboard</h1>
+    <p id="setup-intro"></p>
+    <div class="fgroup">
+      <label id="lbl-server"></label>
+      <input type="url" id="inp-url" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <div class="hint" id="lbl-hint"></div>
+    </div>
+    <div class="fgroup">
+      <label id="lbl-name"></label>
+      <input type="text" id="inp-name" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label id="lbl-user"></label>
+      <input type="text" id="inp-user" autocomplete="off" autocorrect="off" autocapitalize="off">
+    </div>
+    <div class="fgroup">
+      <label id="lbl-pass"></label>
+      <input type="password" id="inp-pass" autocomplete="off">
+    </div>
+    <button class="btn-main" id="btn-save"></button>
+    <div class="setup-msg" id="setup-msg"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen">
+  <span id="loading-text"></span>
+</div>
+
+<!-- DASHBOARD -->
+<div id="screen-dash" class="screen">
+  <div class="dash-header">
+    <div>
+      <div class="clock-time" id="clock">--:--</div>
+      <div class="clock-date" id="cdate"></div>
+    </div>
+    <div class="logo"><span class="logo-dot"></span>Wilma</div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="ov-card">
+
+    <div id="panel-main">
+      <h2 id="ov-title"></h2>
+      <button class="ov-btn" id="btn-ov-theme"></button>
+      <button class="ov-btn" id="btn-ov-refresh"></button>
+      <button class="ov-btn" id="btn-ov-settings"></button>
+      <button class="ov-btn danger" id="btn-ov-sleep"></button>
+      <div class="ov-ts" id="ov-ts"></div>
+    </div>
+
+    <div id="panel-settings" style="display:none">
+      <h2 id="ov-title-s"></h2>
+      <div class="ov-sec-lbl" id="ov-lbl-lang"></div>
+      <div class="ov-lang-row">
+        <button class="ov-lang-btn" id="ov-fi">&#x1F1EB;&#x1F1EE;<span>Suomi</span></button>
+        <button class="ov-lang-btn" id="ov-en">&#x1F1EC;&#x1F1E7;<span>English</span></button>
+      </div>
+      <button class="ov-btn danger" id="btn-ov-logout" style="margin-top:6px"></button>
+      <button class="ov-btn" id="btn-ov-back" style="margin-top:6px"></button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Wilma Dashboard — standalone kiosk app
+   Runs inside Android WebView with WilmaBridge JavascriptInterface.
+   ES5 only: no const/let, no arrows, no template literals.
+   ============================================================ */
+
+/* ── Bridge ──────────────────────────────────────────────
+   In production, window.WilmaBridge is injected by Android.
+   In browser, we use a mock that returns demo data.
+   ──────────────────────────────────────────────────────── */
+var Bridge = window.WilmaBridge || {
+  hasCredentials: function() { return false; },
+  setup: function(u,n,user,pass) {
+    setTimeout(function(){
+      window.onSetupDone('{"ok":true}');
+    }, 1200);
+  },
+  getCachedData: function() { return ''; },
+  fetchData: function() {
+    setTimeout(function() {
+      window.onDataReady(JSON.stringify(DEMO_DATA));
+    }, 800);
+  },
+  reset: function() {},
+  getLanguage: function() { return localStorage.getItem('lang') || ''; },
+  setLanguage: function(l) { localStorage.setItem('lang', l); },
+  getFinnishHour: function() { return new Date().getHours(); },
+  setScreenBrightness: function(b) {}
+};
+
+/* ── Demo data (used when no bridge) ─────────────────── */
+var DEMO_DATA = [
+  { student:'Aino', studentNumber:'11111',
+    todaySchedule:[{start:'08:00',end:'08:45',subject:'Matematiikka'},{start:'09:00',end:'09:45',subject:'Suomi'},{start:'11:30',end:'12:15',subject:'Liikunta'}],
+    tomorrowSchedule:[{start:'08:00',end:'08:45',subject:'Englanti'},{start:'10:00',end:'10:45',subject:'Kuvataide'}],
+    upcomingExams:[{date:'14.4.',subject:'Matematiikka',name:'Koe',topic:'Murtoluvut luku 7-8'},{date:'22.4.',subject:'Englanti',name:'Sanakoe'}],
+    recentHomework:[{date:'2025-04-08',subject:'Matematiikka',description:'s. 94 teht. 3-6'},{date:'2025-04-07',subject:'Suomi',description:'Lue s. 48-52'}]
+  },
+  { student:'Mikko', studentNumber:'22222',
+    todaySchedule:[{start:'08:00',end:'08:45',subject:'Äidinkieli'},{start:'09:00',end:'09:45',subject:'Matematiikka'}],
+    tomorrowSchedule:[{start:'09:00',end:'09:45',subject:'Käsityö'},{start:'10:00',end:'10:45',subject:'Liikunta'}],
+    upcomingExams:[{date:'16.4.',subject:'Äidinkieli',name:'Kirjoitustehtävä'}],
+    recentHomework:[{date:'2025-04-08',subject:'Matematiikka',description:'Harjoitustehtävät s. 67'}]
+  },
+  { student:'Siiri', studentNumber:'33333',
+    todaySchedule:[{start:'08:15',end:'09:00',subject:'Fysiikka'},{start:'09:15',end:'10:00',subject:'Historia'},{start:'12:00',end:'12:45',subject:'Matematiikka'},{start:'13:00',end:'13:45',subject:'Ruotsi'}],
+    tomorrowSchedule:[{start:'08:15',end:'09:00',subject:'Biologia'},{start:'09:15',end:'10:00',subject:'Matematiikka'}],
+    upcomingExams:[{date:'11.4.',subject:'Fysiikka',name:'Koe',topic:'Sähkö ja magnetismi'},{date:'17.4.',subject:'Englanti A1',name:'',topic:'Unit 9-10'}],
+    recentHomework:[{date:'2025-04-08',subject:'Fysiikka',description:'Lue s. 118-124'},{date:'2025-04-08',subject:'Matematiikka',description:'Tehtävät 8.3 a-f'}]
+  }
+];
+
+/* ── Translations ─────────────────────────────────────── */
+var TR = {
+  fi: {
+    setupIntro:  'Anna Wilma-tunnuksesi. Tiedot tallennetaan laitteelle paikallisesti.',
+    lblServer:   'Wilma-palvelimen osoite',
+    lblHint:     'Esim. https://lappeenranta.inschool.fi',
+    lblName:     'Nimi (vapaaehtoinen)',
+    lblUser:     'K\xe4ytt\xe4j\xe4tunnus',
+    lblPass:     'Salasana',
+    btnSave:     'Tallenna ja jatka',
+    saving:      'Kirjaudutaan\u2026',
+    saved:       'Tallennettu! Haetaan tietoja\u2026',
+    errFields:   'T\xe4yt\xe4 pakolliset kent\xe4t.',
+    errPrefix:   'Virhe',
+    loading:     'Haetaan tietoja Wilmasta\u2026',
+    ovTitle:     'VALIKKO',
+    ovThemeL:    '\u2600\ufe0f Vaalea teema',
+    ovThemeD:    '\ud83c\udf19 Tumma teema',
+    ovRefresh:   '\ud83d\udd04 P\xe4ivit\xe4 nyt',
+    ovSettings:  '\u2699\ufe0f Asetukset',
+    ovSleep:     '\u23fb Sammuta n\xe4ytt\xf6',
+    ovUpdated:   'P\xe4ivitetty',
+    ovNoUpd:     'Ei p\xe4ivitystietoa',
+    ovTitleS:    'ASETUKSET',
+    ovLang:      'Kieli',
+    ovLogout:    '\ud83d\udeba Kirjaudu ulos',
+    ovBack:      '\u2190 Takaisin',
+    secToday:    'T\xe4n\xe4\xe4n',
+    secTomorrow: 'Huomenna',
+    secExams:    'Tulevat kokeet',
+    secHw:       'Kotiteht\xe4v\xe4t',
+    noLessons:   'ei oppitunteja',
+    noExams:     'ei tulevia kokeita',
+    noHw:        'ei kotiteht\xe4vi\xe4',
+    days:   ['su','ma','ti','ke','to','pe','la'],
+    months: ['tammikuuta','helmikuuta','maaliskuuta','huhtikuuta','toukokuuta',
+             'kes\xe4kuuta','hein\xe4kuuta','elokuuta','syyskuuta','lokakuuta','marraskuuta','joulukuuta']
+  },
+  en: {
+    setupIntro:  'Enter your Wilma credentials. They are stored only on this device.',
+    lblServer:   'Wilma server address',
+    lblHint:     'E.g. https://lappeenranta.inschool.fi',
+    lblName:     'Display name (optional)',
+    lblUser:     'Username',
+    lblPass:     'Password',
+    btnSave:     'Save and continue',
+    saving:      'Signing in\u2026',
+    saved:       'Saved! Fetching data\u2026',
+    errFields:   'Please fill in all required fields.',
+    errPrefix:   'Error',
+    loading:     'Fetching data from Wilma\u2026',
+    ovTitle:     'MENU',
+    ovThemeL:    '\u2600\ufe0f Light theme',
+    ovThemeD:    '\ud83c\udf19 Dark theme',
+    ovRefresh:   '\ud83d\udd04 Refresh now',
+    ovSettings:  '\u2699\ufe0f Settings',
+    ovSleep:     '\u23fb Turn off display',
+    ovUpdated:   'Updated',
+    ovNoUpd:     'No update info',
+    ovTitleS:    'SETTINGS',
+    ovLang:      'Language',
+    ovLogout:    '\ud83d\udeba Log out',
+    ovBack:      '\u2190 Back',
+    secToday:    'Today',
+    secTomorrow: 'Tomorrow',
+    secExams:    'Upcoming exams',
+    secHw:       'Homework',
+    noLessons:   'no lessons',
+    noExams:     'no upcoming exams',
+    noHw:        'no homework',
+    days:   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    months: ['January','February','March','April','May','June',
+             'July','August','September','October','November','December']
+  }
+};
+
+/* ── App state ────────────────────────────────────────── */
+var S = {
+  lang:         Bridge.getLanguage() || '',
+  theme:        localStorage.getItem('wtheme') || 'dark',
+  screen:       '',
+  lastData:     null,
+  lastUpdatedAt: null,
+  expandedIdx:  -1,
+  collapseTimer: null,
+  wakeTimer:    null,
+  pollTimer:    null,
+  overlayOpen:  false
+};
+
+var ACTIVE_START = 6;
+var ACTIVE_END   = 22;
+var POLL_MS      = 5 * 60 * 1000;
+var EXPAND_MS    = 30000;
+
+/* ── Helpers ──────────────────────────────────────────── */
+function $(id) { return document.getElementById(id); }
+
+function t(k) {
+  var lang = S.lang || 'fi';
+  return (TR[lang] && TR[lang][k] !== undefined) ? TR[lang][k] : k;
+}
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Screens ──────────────────────────────────────────── */
+var SCREENS = ['black','lang','setup','loading','dash'];
+function showScreen(name) {
+  for (var i = 0; i < SCREENS.length; i++) {
+    var el = $('screen-' + SCREENS[i]);
+    if (el) el.style.display = (SCREENS[i] === name) ? '' : 'none';
+  }
+  S.screen = name;
+}
+
+/* ── Theme ────────────────────────────────────────────── */
+function setTheme(th) {
+  document.body.className = th;
+  S.theme = th;
+  localStorage.setItem('wtheme', th);
+}
+setTheme(S.theme);
+
+/* ── Apply all string labels ──────────────────────────── */
+function applyStrings() {
+  if (!S.lang) return;
+  $('setup-intro').innerHTML   = t('setupIntro');
+  $('lbl-server').innerHTML    = t('lblServer');
+  $('lbl-hint').innerHTML      = t('lblHint');
+  $('lbl-name').innerHTML      = t('lblName');
+  $('lbl-user').innerHTML      = t('lblUser');
+  $('lbl-pass').innerHTML      = t('lblPass');
+  $('btn-save').innerHTML      = t('btnSave');
+  $('loading-text').innerHTML  = t('loading');
+  $('ov-title').innerHTML      = t('ovTitle');
+  $('btn-ov-theme').innerHTML  = S.theme === 'dark' ? t('ovThemeL') : t('ovThemeD');
+  $('btn-ov-refresh').innerHTML= t('ovRefresh');
+  $('btn-ov-settings').innerHTML=t('ovSettings');
+  $('btn-ov-sleep').innerHTML  = t('ovSleep');
+  $('ov-title-s').innerHTML    = t('ovTitleS');
+  $('ov-lbl-lang').innerHTML   = t('ovLang');
+  $('btn-ov-logout').innerHTML = t('ovLogout');
+  $('btn-ov-back').innerHTML   = t('ovBack');
+  $('ov-fi').className = 'ov-lang-btn' + (S.lang === 'fi' ? ' active' : '');
+  $('ov-en').className = 'ov-lang-btn' + (S.lang === 'en' ? ' active' : '');
+  document.documentElement.lang = S.lang;
+}
+
+/* ── Clock ────────────────────────────────────────────── */
+function tickClock() {
+  var now = new Date();
+  $('clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  var d = t('days');
+  var m = t('months');
+  $('cdate').textContent = d[now.getDay()] + ' ' + now.getDate() + '. ' + m[now.getMonth()];
+}
+setInterval(tickClock, 10000);
+tickClock();
+
+/* ── Sleep / wake ─────────────────────────────────────── */
+function isActive() {
+  var h = Bridge.getFinnishHour();
+  return h >= ACTIVE_START && h < ACTIVE_END;
+}
+
+function checkSleep() {
+  if (S.screen === 'lang' || S.screen === 'setup') return;
+  if (!isActive() && S.screen !== 'black') {
+    goBlack();
+  } else if (isActive() && S.screen === 'black') {
+    wakeUp(false);
+  }
+}
+setInterval(checkSleep, 30000);
+
+function goBlack() {
+  closeOverlay();
+  showScreen('black');
+  Bridge.setScreenBrightness(0.01);
+  if (S.wakeTimer) { clearTimeout(S.wakeTimer); S.wakeTimer = null; }
+}
+
+function wakeUp(manual) {
+  if (S.screen === 'lang' || S.screen === 'setup') return;
+  Bridge.setScreenBrightness(-1);
+  showScreen(S.lastData ? 'dash' : 'loading');
+  if (manual && !isActive()) {
+    if (S.wakeTimer) clearTimeout(S.wakeTimer);
+    S.wakeTimer = setTimeout(function() { S.wakeTimer = null; goBlack(); }, 30000);
+  }
+}
+
+$('screen-black').onclick = function() { wakeUp(true); };
+
+/* ── Long press → overlay ─────────────────────────────── */
+var lpTimer = null;
+var LP_MS   = 700;
+
+function lpStart()  { if (!S.overlayOpen) lpTimer = setTimeout(function(){ lpTimer=null; openOverlay(); }, LP_MS); }
+function lpCancel() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
+
+var dashEl = $('screen-dash');
+dashEl.addEventListener('touchstart',  lpStart,  false);
+dashEl.addEventListener('touchend',    lpCancel, false);
+dashEl.addEventListener('touchmove',   lpCancel, false);
+dashEl.addEventListener('touchcancel', lpCancel, false);
+dashEl.addEventListener('mousedown',   lpStart,  false);
+dashEl.addEventListener('mouseup',     lpCancel, false);
+
+/* ── Overlay ──────────────────────────────────────────── */
+function openOverlay() {
+  S.overlayOpen = true;
+  $('panel-main').style.display     = 'block';
+  $('panel-settings').style.display = 'none';
+  $('btn-ov-theme').innerHTML = S.theme === 'dark' ? t('ovThemeL') : t('ovThemeD');
+  var ts = S.lastUpdatedAt
+    ? t('ovUpdated') + ': ' + S.lastUpdatedAt.replace('T',' ').slice(0,16)
+    : t('ovNoUpd');
+  $('ov-ts').textContent = ts;
+  $('overlay').className = 'vis';
+}
+
+function closeOverlay() {
+  S.overlayOpen = false;
+  $('overlay').className = '';
+}
+
+$('overlay').onclick = function(e) { if (e.target === $('overlay')) closeOverlay(); };
+
+$('btn-ov-theme').onclick = function(e) {
+  e.stopPropagation();
+  setTheme(S.theme === 'dark' ? 'light' : 'dark');
+  closeOverlay();
+};
+$('btn-ov-refresh').onclick = function(e) {
+  e.stopPropagation();
+  closeOverlay();
+  doFetch();
+};
+$('btn-ov-sleep').onclick = function(e) {
+  e.stopPropagation();
+  closeOverlay();
+  goBlack();
+};
+$('btn-ov-settings').onclick = function(e) {
+  e.stopPropagation();
+  $('panel-main').style.display     = 'none';
+  $('panel-settings').style.display = 'block';
+  $('ov-fi').className = 'ov-lang-btn' + (S.lang === 'fi' ? ' active' : '');
+  $('ov-en').className = 'ov-lang-btn' + (S.lang === 'en' ? ' active' : '');
+};
+$('btn-ov-back').onclick = function(e) {
+  e.stopPropagation();
+  $('panel-settings').style.display = 'none';
+  $('panel-main').style.display     = 'block';
+};
+$('ov-fi').onclick = function(e) { e.stopPropagation(); changeLang('fi'); };
+$('ov-en').onclick = function(e) { e.stopPropagation(); changeLang('en'); };
+
+function changeLang(lang) {
+  S.lang = lang;
+  Bridge.setLanguage(lang);
+  applyStrings();
+  if (S.lastData) renderStudents(S.lastData);
+  closeOverlay();
+}
+
+$('btn-ov-logout').onclick = function(e) {
+  e.stopPropagation();
+  closeOverlay();
+  Bridge.reset();
+  S.lastData = null;
+  S.lastUpdatedAt = null;
+  if (S.pollTimer) { clearInterval(S.pollTimer); S.pollTimer = null; }
+  showScreen('setup');
+};
+
+/* ── Language pick (first run) ────────────────────────── */
+$('btn-lang-fi').onclick = function() { confirmLang('fi'); };
+$('btn-lang-en').onclick = function() { confirmLang('en'); };
+
+function confirmLang(lang) {
+  S.lang = lang;
+  Bridge.setLanguage(lang);
+  $('btn-lang-fi').className = 'lang-btn' + (lang === 'fi' ? ' sel' : '');
+  $('btn-lang-en').className = 'lang-btn' + (lang === 'en' ? ' sel' : '');
+  applyStrings();
+  showScreen('setup');
+}
+
+/* ── Credentials form ─────────────────────────────────── */
+$('btn-save').onclick = function() {
+  var url  = $('inp-url').value.trim();
+  var name = $('inp-name').value.trim();
+  var user = $('inp-user').value.trim();
+  var pass = $('inp-pass').value;
+  var msg  = $('setup-msg');
+
+  if (!url || !user || !pass) {
+    msg.className = 'setup-msg';
+    msg.innerHTML = t('errFields');
+    return;
+  }
+
+  msg.className = 'setup-msg';
+  msg.innerHTML = t('saving');
+  Bridge.setup(url, name, user, pass);
+};
+
+window.onSetupDone = function(jsonStr) {
+  var msg = $('setup-msg');
+  var result;
+  try { result = JSON.parse(jsonStr); } catch(e) { result = {}; }
+  if (result.ok) {
+    msg.className = 'setup-msg ok';
+    msg.innerHTML = t('saved');
+    setTimeout(function() {
+      showScreen('loading');
+      startPolling();
+      doFetch();
+    }, 900);
+  } else {
+    msg.className = 'setup-msg';
+    msg.innerHTML = t('errPrefix') + ': ' + esc(result.error || '?');
+  }
+};
+
+/* ── Data callbacks ───────────────────────────────────── */
+window.onDataReady = function(jsonStr) {
+  var students;
+  try { students = JSON.parse(jsonStr); } catch(e) { return; }
+  if (!Array.isArray(students) || !students.length) return;
+  S.lastData      = students;
+  S.lastUpdatedAt = new Date().toISOString();
+  renderStudents(students);
+  if (S.screen === 'loading') {
+    checkSleep();
+    if (S.screen === 'loading') showScreen('dash');
+  }
+};
+
+window.onDataError = function(msg) {
+  // Keep showing previous data on error — data integrity
+  if (S.screen === 'loading' && S.lastData) {
+    checkSleep();
+    if (S.screen === 'loading') showScreen('dash');
+  }
+};
+
+function doFetch() {
+  Bridge.fetchData();
+}
+
+function startPolling() {
+  if (S.pollTimer) clearInterval(S.pollTimer);
+  S.pollTimer = setInterval(doFetch, POLL_MS);
+}
+
+/* ── Dashboard rendering ──────────────────────────────── */
+function renderStudents(students) {
+  var grid = $('grid');
+  var html = '';
+  for (var i = 0; i < students.length; i++) {
+    html += renderCol(students[i], i);
+  }
+  grid.innerHTML = html;
+
+  // Attach column tap handlers
+  var cols = grid.querySelectorAll('.col');
+  for (var j = 0; j < cols.length; j++) {
+    (function(el, idx) {
+      el.addEventListener('click', function() { expandCol(idx); });
+    })(cols[j], j);
+  }
+}
+
+function renderCol(s, idx) {
+  var today    = s.todaySchedule    || s.today    || [];
+  var tomorrow = s.tomorrowSchedule || s.tomorrow || [];
+  var exams    = s.upcomingExams    || [];
+  var hw       = s.recentHomework   || [];
+
+  return '<div class="col" data-idx="' + idx + '">'
+    + '<div class="col-head">'
+    +   '<div class="kid-name">' + esc(s.student || s.name || '') + '</div>'
+    +   '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
+    +   '<div class="col-rotated">' + esc(s.student || s.name || '') + '</div>'
+    + '</div>'
+    + '<div class="col-body">'
+    +   sec(t('secToday'),    renderLessons(today))
+    +   sec(t('secTomorrow'), renderLessons(tomorrow))
+    +   sec(t('secExams'),    renderExams(exams))
+    +   sec(t('secHw'),       renderHw(hw))
+    + '</div>'
+    + '<div class="timer-bar"></div>'
+    + '</div>';
+}
+
+function sec(title, content) {
+  return '<div class="sec"><div class="sec-title">' + esc(title) + '</div>' + content + '</div>';
+}
+
+function renderLessons(list) {
+  if (!list || !list.length) return '<div class="empty">' + t('noLessons') + '</div>';
+  var h = '';
+  for (var i = 0; i < list.length; i++) {
+    var l = list[i];
+    h += '<div class="lesson">'
+      + '<span class="lesson-time">' + esc(l.start) + '\u2013' + esc(l.end) + '</span>'
+      + '<span class="lesson-subj">' + esc(l.subject || '') + '</span>'
+      + '</div>';
+  }
+  return h;
+}
+
+function renderExams(list) {
+  if (!list || !list.length) return '<div class="empty">' + t('noExams') + '</div>';
+  var h = '';
+  var max = list.length < 5 ? list.length : 5;
+  for (var i = 0; i < max; i++) {
+    var e = list[i];
+    h += '<div class="exam">'
+      + '<div class="exam-date">' + esc(e.date) + '</div>'
+      + '<div class="exam-name">' + esc(e.subject) + (e.name ? ' \u2014 ' + esc(e.name) : '') + '</div>'
+      + (e.topic ? '<div class="exam-topic">' + esc(e.topic) + '</div>' : '')
+      + '</div>';
+  }
+  return h;
+}
+
+function renderHw(list) {
+  if (!list || !list.length) return '<div class="empty">' + t('noHw') + '</div>';
+  var h = '';
+  var max = list.length < 5 ? list.length : 5;
+  for (var i = 0; i < max; i++) {
+    var hw = list[i];
+    h += '<div class="hw">'
+      + (hw.subject ? '<div class="hw-subj">' + esc(hw.subject) + '</div>' : '')
+      + '<div class="hw-text">' + esc(hw.description || hw.text || hw.homework || '') + '</div>'
+      + '</div>';
+  }
+  return h;
+}
+
+/* ── Column expand / collapse ─────────────────────────── */
+function collapseAll() {
+  clearTimeout(S.collapseTimer);
+  S.collapseTimer = null;
+  S.expandedIdx = -1;
+  var cols = document.querySelectorAll('.col');
+  for (var i = 0; i < cols.length; i++) {
+    cols[i].classList.remove('expanded', 'collapsed');
+  }
+}
+
+function expandCol(idx) {
+  if (S.expandedIdx === idx) { collapseAll(); return; }
+  clearTimeout(S.collapseTimer);
+  S.expandedIdx = idx;
+  var cols = document.querySelectorAll('.col');
+  for (var i = 0; i < cols.length; i++) {
+    cols[i].classList.remove('expanded', 'collapsed');
+    cols[i].classList.add(i === idx ? 'expanded' : 'collapsed');
+  }
+  // Restart CSS animation on timer bar (clone trick)
+  var bar = cols[idx].querySelector('.timer-bar');
+  if (bar) {
+    var fresh = bar.cloneNode(true);
+    bar.parentNode.replaceChild(fresh, bar);
+  }
+  S.collapseTimer = setTimeout(collapseAll, EXPAND_MS);
+}
+
+/* ── Init ─────────────────────────────────────────────── */
+function init() {
+  if (S.lang) applyStrings();
+  showScreen('loading');
+
+  if (!Bridge.hasCredentials()) {
+    if (!S.lang) { showScreen('lang'); return; }
+    applyStrings();
+    showScreen('setup');
+    return;
+  }
+
+  if (!S.lang) { showScreen('lang'); return; }
+  applyStrings();
+
+  // Show cached data immediately while fetching fresh
+  var cached = Bridge.getCachedData();
+  if (cached) {
+    try {
+      var students = JSON.parse(cached);
+      if (Array.isArray(students) && students.length) {
+        S.lastData = students;
+        renderStudents(students);
+        checkSleep();
+        if (S.screen === 'loading') showScreen('dash');
+      }
+    } catch(e) {}
+  }
+
+  startPolling();
+  doFetch();
+}
+
+setTimeout(init, 150);
+</script>
+</body>
+</html>
