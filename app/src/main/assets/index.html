@@ -439,7 +439,10 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
 
 <!-- LOADING -->
 <div id="screen-loading" class="screen">
-  <span id="loading-text"></span>
+  <div style="text-align:center;padding:20px">
+    <div id="loading-text"></div>
+    <div id="loading-error" style="display:none;margin-top:16px;font-size:12px;color:#f85149;max-width:300px;word-break:break-all;padding:12px;background:rgba(248,81,73,0.1);border-radius:8px;border:1px solid rgba(248,81,73,0.3)"></div>
+  </div>
 </div>
 
 <!-- DASHBOARD -->
@@ -492,25 +495,32 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
    In production, window.WilmaBridge is injected by Android.
    In browser, we use a mock that returns demo data.
    ──────────────────────────────────────────────────────── */
-var Bridge = window.WilmaBridge || {
-  hasCredentials: function() { return false; },
-  setup: function(u,n,user,pass) {
-    setTimeout(function(){
-      window.onSetupDone('{"ok":true}');
-    }, 1200);
-  },
-  getCachedData: function() { return ''; },
-  fetchData: function() {
-    setTimeout(function() {
-      window.onDataReady(JSON.stringify(DEMO_DATA));
-    }, 800);
-  },
-  reset: function() {},
-  getLanguage: function() { return localStorage.getItem('lang') || ''; },
-  setLanguage: function(l) { localStorage.setItem('lang', l); },
-  getFinnishHour: function() { return new Date().getHours(); },
-  setScreenBrightness: function(b) {}
-};
+var Bridge = window.WilmaBridge || (function() {
+  // Mock bridge for browser testing — mirrors the real Java bridge API
+  var _setupResult = '';
+  var _dataJson    = '';
+  var _error       = '';
+  return {
+    hasCredentials:       function() { return false; },
+    setup: function(u,n,user,pass) {
+      _setupResult = '{"ok":true}';
+      setTimeout(function(){ window.onSetupDone(); }, 1200);
+    },
+    getLatestSetupResult: function() { return _setupResult; },
+    getCachedData:        function() { return ''; },
+    fetchData: function() {
+      _dataJson = JSON.stringify(DEMO_DATA);
+      setTimeout(function() { window.onDataReady(); }, 800);
+    },
+    getLatestDataJson:    function() { return _dataJson; },
+    getLatestError:       function() { return _error; },
+    reset:                function() {},
+    getLanguage:          function() { return localStorage.getItem('lang') || ''; },
+    setLanguage:          function(l) { localStorage.setItem('lang', l); },
+    getFinnishHour:       function() { return new Date().getHours(); },
+    setScreenBrightness:  function(b) {}
+  };
+}());
 
 /* ── Demo data (used when no bridge) ─────────────────── */
 var DEMO_DATA = [
@@ -858,10 +868,10 @@ $('btn-save').onclick = function() {
   Bridge.setup(url, name, user, pass);
 };
 
-window.onSetupDone = function(jsonStr) {
-  var msg = $('setup-msg');
+window.onSetupDone = function() {
+  var msg    = $('setup-msg');
   var result;
-  try { result = JSON.parse(jsonStr); } catch(e) { result = {}; }
+  try { result = JSON.parse(Bridge.getLatestSetupResult()); } catch(e) { result = {}; }
   if (result.ok) {
     msg.className = 'setup-msg ok';
     msg.innerHTML = t('saved');
@@ -877,26 +887,40 @@ window.onSetupDone = function(jsonStr) {
 };
 
 /* ── Data callbacks ───────────────────────────────────── */
-window.onDataReady = function(jsonStr) {
+window.onDataReady = function() {
+  var jsonStr = Bridge.getLatestDataJson();
   var students;
-  try { students = JSON.parse(jsonStr); } catch(e) { return; }
-  if (!Array.isArray(students) || !students.length) return;
+  try { students = JSON.parse(jsonStr); } catch(e) {
+    showError('Data parse error: ' + e.message);
+    return;
+  }
+  if (!Array.isArray(students) || !students.length) {
+    showError('No student data returned');
+    return;
+  }
   S.lastData      = students;
   S.lastUpdatedAt = new Date().toISOString();
+  // Hide any previous error
+  var el = $('loading-error');
+  if (el) el.style.display = 'none';
   renderStudents(students);
-  // Always show the dashboard when data arrives — the sleep interval
-  // will handle dimming at the right time, never on first load.
-  if (S.screen === 'loading') {
-    showScreen('dash');
+  if (S.screen === 'loading') showScreen('dash');
+};
+
+window.onDataError = function() {
+  var msg = Bridge.getLatestError();
+  if (S.lastData) {
+    if (S.screen === 'loading') showScreen('dash');
+  } else {
+    showError(msg || 'Data fetch failed');
   }
 };
 
-window.onDataError = function(msg) {
-  // Data integrity: keep showing last good data on error, never go blank
-  if (S.screen === 'loading' && S.lastData) {
-    showScreen('dash');
-  }
-};
+function showError(msg) {
+  var el = $('loading-error');
+  if (el) { el.innerHTML = msg; el.style.display = 'block'; }
+  showScreen('loading');
+}
 
 function doFetch() {
   Bridge.fetchData();
