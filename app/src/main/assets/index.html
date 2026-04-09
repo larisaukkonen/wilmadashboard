@@ -109,11 +109,13 @@ body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:#
 }
 .clock-time {
   font-family:sans-serif; font-size:26px; font-weight:700;
-  letter-spacing:0.06em; line-height:1;
+  letter-spacing:0.06em; line-height:1; text-align:center;
 }
-.clock-date { font-size:10px; letter-spacing:0.04em; margin-top:2px; }
-body.dark  .clock-date { color:rgba(255,255,255,0.22); }
-body.light .clock-date { color:rgba(0,0,0,0.4); }
+.clock-date {
+  font-size:10px; font-weight:700; letter-spacing:0.06em;
+  margin-top:3px; text-align:center; color:#ffffff;
+}
+body.light .clock-date { color:#1a1d2e; }
 
 /* ── STUDENT GRID ────────────────────────────────────── */
 .grid {
@@ -233,8 +235,8 @@ body.light .lesson { border-bottom:1px solid rgba(0,0,0,0.04); }
   display:inline-block; vertical-align:middle;
   font-size:10px; white-space:nowrap; width:88px; margin-right:6px;
 }
-body.dark  .lesson-time { color:rgba(255,255,255,0.22); }
-body.light .lesson-time { color:rgba(0,0,0,0.4); }
+body.dark  .lesson-time { color:rgba(255,255,255,0.65); }
+body.light .lesson-time { color:rgba(0,0,0,0.65); }
 .lesson-subj { display:inline-block; vertical-align:middle; font-size:12px; line-height:1.4; }
 
 .exam {
