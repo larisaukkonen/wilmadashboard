@@ -132,7 +132,7 @@ public class WilmaBridge {
         new Thread(new Runnable() {
             @Override public void run() {
                 try {
-                    String cleanUrl = tenantUrl.trim().replaceAll("/+$", "");
+                    String cleanUrl = tenantUrl.trim().replaceAll("/+$", "").toLowerCase(Locale.ROOT);
                     resetCookies();
                     doLogin(cleanUrl, username, password);
                     prefs.edit()
