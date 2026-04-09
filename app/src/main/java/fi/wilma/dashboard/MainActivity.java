@@ -79,14 +79,6 @@ public class MainActivity extends Activity {
             ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
 
-        // Tell the input connection to use TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        // so the IME knows not to capitalise or correct anything
-        webView.setInputType(
-            android.text.InputType.TYPE_CLASS_TEXT |
-            android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS |
-            android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-        );
-
         webView.addJavascriptInterface(bridge, "WilmaBridge");
 
         webView.setWebViewClient(new WebViewClient() {
