@@ -98,12 +98,15 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
   position:absolute; top:0; left:0; right:0; height:58px;
   overflow:hidden; z-index:20;
 }
-/* Clock on left, hamburger on right — both absolute in header */
-.dash-header:after { content:''; display:block; clear:both; }
+/* Clock on left, hamburger on right — both absolutely positioned */
 body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:#080b10; }
 body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:#f0f4f8; }
 
-.clock-block { float:left; padding:14px 18px; }
+.clock-block {
+  position:absolute; top:50%; left:18px;
+  -webkit-transform:translateY(-50%);
+  transform:translateY(-50%);
+}
 .clock-time {
   font-family:sans-serif; font-size:26px; font-weight:700;
   letter-spacing:0.06em; line-height:1;
@@ -113,35 +116,36 @@ body.dark  .clock-date { color:rgba(255,255,255,0.22); }
 body.light .clock-date { color:rgba(0,0,0,0.4); }
 
 /* ── STUDENT GRID ────────────────────────────────────── */
-/* Absolutely fills the space below the header.
-   Columns are inline-block; widths set by layoutGrid() JS. */
+/* display:table is supported on every WebKit since 420.
+   Columns are table-cells — equal width is automatic, no JS
+   width calculation needed. Much more reliable than inline-block
+   on Android 4.2.2.                                        */
 .grid {
   position:absolute; top:58px; left:0; right:0; bottom:0;
   overflow:hidden;
-  white-space:nowrap; /* keeps inline-block cols on one line */
-  font-size:0;        /* removes gaps between inline-block   */
+  display:table;
+  width:100%;
+  table-layout:fixed;  /* equal column widths automatically */
+  border-collapse:collapse;
 }
 
 /* ── COLUMN ──────────────────────────────────────────── */
 .col {
-  display:inline-block; vertical-align:top;
-  white-space:normal; /* restore inside column              */
+  display:table-cell;
+  vertical-align:top;
   overflow:hidden; cursor:pointer; position:relative;
-  /* width and height set by layoutGrid() JS */
   -webkit-box-sizing:border-box; box-sizing:border-box;
 }
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
 body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
 
-/* 5% accent tint on each column body */
+/* 5% accent tint on each column */
 .col:nth-child(1) { background:rgba(91,196,245,0.05); }
 .col:nth-child(2) { background:rgba(125,217,138,0.05); }
 .col:nth-child(3) { background:rgba(245,200,66,0.05); }
 .col:nth-child(4) { background:rgba(201,124,245,0.05); }
 .col:nth-child(5) { background:rgba(245,115,110,0.05); }
 .col:last-child { border-right:none !important; }
-
-/* Expanded/collapsed state handled entirely by layoutGrid() JS */
 
 /* ── COLUMN HEADER ───────────────────────────────────── */
 .col-head {
@@ -857,17 +861,17 @@ function startPolling() {
 
 /* ── Layout engine ────────────────────────────────────── */
 function layoutGrid() {
-  var grid = $('grid');   // always read fresh — element may have been replaced
+  var grid = $('grid');
   if (!grid) return;
   var gridH = grid.offsetHeight;
+  // Fallback if grid not yet laid out
+  if (!gridH) gridH = window.innerHeight - 58;
   if (!gridH) return;
   var cols = grid.querySelectorAll('.col');
   var n = cols.length;
   if (!n) return;
 
   var expanded = S.expandedIdx >= 0 && S.expandedIdx < n;
-  var equalW   = Math.floor(100 / n);
-  var rem      = 100 - equalW * n;
 
   for (var i = 0; i < n; i++) {
     var col  = cols[i];
@@ -875,11 +879,12 @@ function layoutGrid() {
     var body = col.querySelector('.col-body');
 
     if (expanded) {
-      col.style.display = (i === S.expandedIdx) ? 'block' : 'none';
-      col.style.width   = '100%';
+      // Hide all others; expanded col becomes the sole table-cell
+      // (table-layout:fixed with one visible cell = 100% width)
+      col.style.display = (i === S.expandedIdx) ? 'table-cell' : 'none';
     } else {
-      col.style.display = 'block';
-      col.style.width   = (equalW + (rem-- > 0 ? 1 : 0)) + '%';
+      // Restore all to table-cell — table-layout:fixed gives equal widths
+      col.style.display = 'table-cell';
     }
 
     col.style.height = gridH + 'px';
@@ -1015,10 +1020,9 @@ function collapseAll() {
   clearTimeout(S.collapseTimer);
   S.collapseTimer = null;
   S.expandedIdx = -1;
-  // Explicitly reset display on all columns so none stay hidden
   var cols = document.querySelectorAll('.col');
   for (var i = 0; i < cols.length; i++) {
-    cols[i].style.display = 'block';
+    cols[i].style.display = 'table-cell';
   }
   layoutGrid();
 }
