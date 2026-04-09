@@ -14,9 +14,10 @@ Sovellus on suunniteltu toimimaan kioskitilassa: se käynnistyy automaattisesti 
 - Tämän päivän ja huomisen lukujärjestys tuntiaikoineen
 - Tulevat kokeet järjestettynä lähimmästä kaukaisimpaan
 - Kotitehtävät
-- Automaattinen päivitys 5 minuutin välein
+- Automaattinen päivitys 10 minuutin välein
 - Näyttö pimenee automaattisesti klo 22–06, herää napauttamalla
 - Sarakkeen saa laajennettua koko näytölle napauttamalla otsikkoa
+- Yksittäistä koketta napauttamalla saa näkyviin koko selitystekstin
 - Tuki suomen ja englannin kielelle
 - Tumma ja vaalea teema
 
