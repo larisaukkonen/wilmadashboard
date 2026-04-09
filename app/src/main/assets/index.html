@@ -134,6 +134,13 @@ body.light .clock-date { color:rgba(0,0,0,0.4); }
 }
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
 body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
+
+/* 5% accent tint on each column body */
+.col:nth-child(1) { background:rgba(91,196,245,0.05); }
+.col:nth-child(2) { background:rgba(125,217,138,0.05); }
+.col:nth-child(3) { background:rgba(245,200,66,0.05); }
+.col:nth-child(4) { background:rgba(201,124,245,0.05); }
+.col:nth-child(5) { background:rgba(245,115,110,0.05); }
 .col:last-child { border-right:none !important; }
 
 /* Expanded/collapsed state handled entirely by layoutGrid() JS */
@@ -860,7 +867,7 @@ function startPolling() {
 
 /* ── Layout engine ────────────────────────────────────── */
 function layoutGrid() {
-  var grid = $('grid');
+  var grid = $('grid');   // always read fresh — element may have been replaced
   if (!grid) return;
   var gridH = grid.offsetHeight;
   if (!gridH) return;
@@ -895,30 +902,33 @@ window.onresize = function() { layoutGrid(); };
 
 /* ── Dashboard rendering ──────────────────────────────── */
 function renderStudents(students) {
-  var grid = $('grid');
-
-  // Explicitly clear first — on old WebKit, assigning innerHTML
-  // directly over existing content can leave ghost layers.
-  // Reset expand state so layoutGrid starts clean.
+  // Reset expand state before touching the DOM
   S.expandedIdx = -1;
   if (S.collapseTimer) { clearTimeout(S.collapseTimer); S.collapseTimer = null; }
-  grid.innerHTML = '';
+
+  // Replace the grid element entirely — on old WebKit, assigning innerHTML
+  // over existing content can leave ghost layers even after grid.innerHTML=''.
+  // Removing the node and inserting a fresh one guarantees a clean slate.
+  var oldGrid = $('grid');
+  var newGrid = document.createElement('div');
+  newGrid.id = 'grid';
+  oldGrid.parentNode.replaceChild(newGrid, oldGrid);
 
   var html = '';
   for (var i = 0; i < students.length; i++) {
     html += renderCol(students[i], i);
   }
-  grid.innerHTML = html;
+  newGrid.innerHTML = html;
 
   // Attach tap handlers
-  var cols = grid.querySelectorAll('.col');
+  var cols = newGrid.querySelectorAll('.col');
   for (var j = 0; j < cols.length; j++) {
     (function(el, idx) {
       el.addEventListener('click', function() { expandCol(idx); });
     })(cols[j], j);
   }
 
-  // Brief delay so offsetHeight is readable before we measure
+  // Delay so offsetHeight is readable before measuring
   setTimeout(layoutGrid, 60);
 }
 
@@ -1014,12 +1024,16 @@ function collapseAll() {
   clearTimeout(S.collapseTimer);
   S.collapseTimer = null;
   S.expandedIdx = -1;
+  // Explicitly reset display on all columns so none stay hidden
+  var cols = document.querySelectorAll('.col');
+  for (var i = 0; i < cols.length; i++) {
+    cols[i].style.display = 'block';
+  }
   layoutGrid();
 }
 
 function expandCol(idx) {
   var cols = document.querySelectorAll('.col');
-  // If already expanded and only one col, nothing to collapse to
   if (S.expandedIdx === idx && cols.length > 1) { collapseAll(); return; }
   clearTimeout(S.collapseTimer);
   S.expandedIdx = idx;
