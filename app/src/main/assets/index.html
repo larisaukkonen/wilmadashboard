@@ -7,7 +7,7 @@
 <title>Wilma Dashboard</title>
 <style>
 /* ── Reset ──────────────────────────────────────────── */
-*,*::before,*::after { -webkit-box-sizing:border-box; box-sizing:border-box; margin:0; padding:0; }
+*,:before,:after { -webkit-box-sizing:border-box; box-sizing:border-box; margin:0; padding:0; }
 html,body {
   width:100%; height:100%; overflow:hidden;
   font-family:sans-serif;
@@ -15,7 +15,6 @@ html,body {
   -webkit-touch-callout:none;
   -webkit-user-select:none;
   user-select:none;
-  touch-action:manipulation;
 }
 
 /* ── Themes ─────────────────────────────────────────── */
@@ -332,11 +331,11 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
 <!-- STEP 1: LANGUAGE -->
 <div id="screen-lang" class="screen setup-bg">
   <div class="setup-card">
-    <h1>&#x1F3EB; Wilma Dashboard</h1>
+    <h1>Wilma Dashboard</h1>
     <p style="margin-bottom:20px">Valitse kieli &bull; Choose language</p>
     <div class="lang-row">
-      <button class="lang-btn" id="btn-lang-fi">&#x1F1EB;&#x1F1EE;<span>Suomi</span></button>
-      <button class="lang-btn" id="btn-lang-en">&#x1F1EC;&#x1F1E7;<span>English</span></button>
+      <button class="lang-btn" id="btn-lang-fi">FI<span>Suomi</span></button>
+      <button class="lang-btn" id="btn-lang-en">EN<span>English</span></button>
     </div>
   </div>
 </div>
@@ -344,7 +343,7 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
 <!-- STEP 2: CREDENTIALS -->
 <div id="screen-setup" class="screen setup-bg">
   <div class="setup-card">
-    <h1>&#x1F3EB; Wilma Dashboard</h1>
+    <h1>Wilma Dashboard</h1>
     <p id="setup-intro"></p>
     <div class="fgroup">
       <label id="lbl-server"></label>
@@ -403,8 +402,8 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
       <h2 id="ov-title-s"></h2>
       <div class="ov-sec-lbl" id="ov-lbl-lang"></div>
       <div class="ov-lang-row">
-        <button class="ov-lang-btn" id="ov-fi">&#x1F1EB;&#x1F1EE;<span>Suomi</span></button>
-        <button class="ov-lang-btn" id="ov-en">&#x1F1EC;&#x1F1E7;<span>English</span></button>
+        <button class="ov-lang-btn" id="ov-fi">FI<span>Suomi</span></button>
+        <button class="ov-lang-btn" id="ov-en">EN<span>English</span></button>
       </div>
       <button class="ov-btn danger" id="btn-ov-logout" style="margin-top:6px"></button>
       <button class="ov-btn" id="btn-ov-back" style="margin-top:6px"></button>
