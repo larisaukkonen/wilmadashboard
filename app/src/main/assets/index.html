@@ -111,7 +111,7 @@ body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:#
   font-family:sans-serif; font-size:26px; font-weight:700;
   letter-spacing:0.06em; line-height:1;
 }
-.clock-date { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
+.clock-date { font-size:10px; letter-spacing:0.04em; margin-top:2px; }
 body.dark  .clock-date { color:rgba(255,255,255,0.22); }
 body.light .clock-date { color:rgba(0,0,0,0.4); }
 
@@ -378,7 +378,7 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
 <!-- DASHBOARD -->
 <div id="screen-dash" class="screen">
   <div class="dash-header">
-    <div>
+    <div class="clock-block">
       <div class="clock-time" id="clock">--:--</div>
       <div class="clock-date" id="cdate"></div>
     </div>
@@ -633,10 +633,22 @@ function applyStrings() {
 /* ── Clock ────────────────────────────────────────────── */
 function tickClock() {
   var now = new Date();
-  $('clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
-  var d = t('days');
-  var m = t('months');
-  $('cdate').textContent = d[now.getDay()] + ' ' + now.getDate() + '. ' + m[now.getMonth()];
+  var h = now.getHours(), mi = now.getMinutes();
+  $('clock').textContent = pad(h) + ':' + pad(mi);
+
+  var day = now.getDate();
+  var mo  = now.getMonth() + 1;
+  var yr  = now.getFullYear();
+
+  if (S.lang === 'fi') {
+    // Finnish: dd.MM.yyyy
+    $('cdate').textContent = pad(day) + '.' + pad(mo) + '.' + yr;
+  } else {
+    // English: short day + date
+    var days = t('days');
+    var months = t('months');
+    $('cdate').textContent = days[now.getDay()] + ' ' + day + ' ' + months[now.getMonth()];
+  }
 }
 setInterval(tickClock, 10000);
 tickClock();
