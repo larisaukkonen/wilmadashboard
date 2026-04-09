@@ -22,7 +22,7 @@ Sovellus on suunniteltu toimimaan kioskitilassa: se käynnistyy automaattisesti 
 
 ## Vaatimukset
 
-- Android 4.2.2 tai uudempi (testattu Samsung SM-T110 -tabletilla)
+- Android 4.2.2 tai uudempi (yhteensopiva Android 14 asti, testattu Samsung SM-T110 -tabletilla)
 - Wilma-tunnukset (huoltajan käyttäjätunnus ja salasana)
 - Wilma-palvelimen osoite (esim. `https://koulu.inschool.fi`)
 
