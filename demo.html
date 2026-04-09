@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wilma Dashboard — Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #050810;
+  --surface:  #0d1117;
+  --card:     #161b22;
+  --border:   #21262d;
+  --text:     #e6edf3;
+  --muted:    #8b949e;
+  --dim:      #484f58;
+  --accent1:  #5bc4f5;
+  --accent2:  #7dd98a;
+  --accent3:  #f5c842;
+  --blue:     #388bfd;
+  --red:      #f85149;
+  --green:    #3fb950;
+}
+
+*, :before, :after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+}
+
+/* ── PAGE LAYOUT ── */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 32px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 72px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--accent1);
+  border: 1px solid rgba(91,196,245,0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.hero h1 span { color: var(--accent1); }
+
+.hero p {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* ── DEVICE FRAME ── */
+.screens {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 80px;
+}
+
+.screen-wrap {
+  flex: 0 0 auto;
+}
+
+.screen-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  text-align: center;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.device {
+  background: #1a1a1a;
+  border-radius: 24px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 32px 80px rgba(0,0,0,0.7),
+    0 8px 24px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+.device:before {
+  content: '';
+  display: block;
+  width: 40px; height: 4px;
+  background: #333;
+  border-radius: 2px;
+  margin: 0 auto 10px;
+}
+
+.device-screen {
+  border-radius: 12px;
+  overflow: hidden;
+  width: 280px;
+}
+
+/* ── LOGIN SCREEN ── */
+.login-screen {
+  background: #0d1117;
+  padding: 32px 24px;
+  min-height: 440px;
+}
+
+.login-screen h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.login-screen .intro {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+
+.fgroup { margin-bottom: 14px; }
+.fgroup label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.fgroup .finput {
+  width: 100%;
+  background: #050810;
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+}
+.fgroup .hint {
+  font-size: 10px;
+  color: var(--dim);
+  margin-top: 3px;
+}
+.btn-login {
+  width: 100%;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 6px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ── DASHBOARD SCREEN ── */
+.dash-screen {
+  background: #080b10;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-header {
+  background: #080b10;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 14px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+
+.clock-block { text-align: center; }
+.clock-time { font-size: 22px; font-weight: 700; letter-spacing: 0.06em; line-height: 1; }
+.clock-date { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; color: #fff; margin-top: 2px; }
+
+.hamburger { display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+.hamburger span { display: block; width: 18px; height: 2px; background: rgba(221,227,240,0.6); border-radius: 1px; }
+
+.cols {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.col {
+  flex: 1;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.col:last-child { border-right: none; }
+.col:nth-child(1) { background: rgba(91,196,245,0.05); }
+.col:nth-child(2) { background: rgba(125,217,138,0.05); }
+.col:nth-child(3) { background: rgba(245,200,66,0.05); }
+
+.col-head {
+  border-bottom: 3px solid;
+  padding: 10px 8px 8px;
+  flex-shrink: 0;
+  position: relative;
+}
+.col:nth-child(1) .col-head { border-color: var(--accent1); background: rgba(91,196,245,0.15); }
+.col:nth-child(2) .col-head { border-color: var(--accent2); background: rgba(125,217,138,0.15); }
+.col:nth-child(3) .col-head { border-color: var(--accent3); background: rgba(245,200,66,0.15); }
+
+.kid-name {
+  font-size: 14px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding-right: 18px;
+}
+.col:nth-child(1) .kid-name { color: var(--accent1); }
+.col:nth-child(2) .kid-name { color: var(--accent2); }
+.col:nth-child(3) .kid-name { color: var(--accent3); }
+
+.kid-grade { font-size: 9px; color: rgba(255,255,255,0.55); margin-top: 2px; letter-spacing: 0.06em; }
+
+.expand-icon {
+  position: absolute; top: 50%; right: 7px;
+  transform: translateY(-50%);
+  opacity: 0.4;
+}
+
+.col-body { flex: 1; overflow-y: auto; padding: 6px 8px 10px; }
+
+.sec-title {
+  font-size: 8px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 4px; margin-bottom: 5px; margin-top: 8px;
+}
+.sec-title:first-child { margin-top: 0; }
+
+.lesson { padding: 2px 0; }
+.lesson-time {
+  display: inline-block; vertical-align: middle;
+  font-family: 'DM Mono', monospace; font-size: 8px;
+  width: 70px; color: rgba(255,255,255,0.65);
+}
+.lesson-subj { font-size: 10px; display: inline-block; vertical-align: middle; }
+
+.exam {
+  border-left: 2px solid;
+  padding: 4px 6px; border-radius: 3px;
+  margin-bottom: 4px; background: rgba(255,255,255,0.03);
+}
+.col:nth-child(1) .exam { border-color: var(--accent1); }
+.col:nth-child(2) .exam { border-color: var(--accent2); }
+.col:nth-child(3) .exam { border-color: var(--accent3); }
+
+.exam-date { font-size: 8px; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; }
+.exam-name { font-size: 9px; font-weight: 600; line-height: 1.3; }
+.exam-topic { font-size: 8px; color: var(--muted); margin-top: 1px; }
+
+.hw { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.hw:last-child { border-bottom: none; }
+.hw-subj { font-size: 8px; color: rgba(255,255,255,0.5); }
+.hw-text { font-size: 9px; line-height: 1.35; }
+
+/* ── EXPANDED VIEW ── */
+.device-screen-expanded .dash-screen { height: 520px; }
+.device-screen-expanded .cols { }
+.col-expanded {
+  background: rgba(91,196,245,0.05) !important;
+  width: 100%;
+}
+.col-expanded .col-head { border-color: var(--accent1) !important; background: rgba(91,196,245,0.15) !important; }
+.col-expanded .kid-name { color: var(--accent1) !important; font-size: 16px; }
+
+/* ── FEATURES ── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 80px;
+}
+
+.feature {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.feature-icon { font-size: 22px; margin-bottom: 10px; }
+.feature h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.feature p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.footer p { font-size: 12px; color: var(--dim); }
+.footer a { color: var(--accent1); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">Android-seinätaulu</div>
+    <h1>Wilma <span>Dashboard</span></h1>
+    <p>Muuttaa vanhan Android-tabletin perheesi digitaaliseksi kouluilmoitustauluksi — lukujärjestykset, kokeet ja kotitehtävät reaaliajassa.</p>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="section-label">Näkymät</div>
+  <div class="screens">
+
+    <!-- LOGIN -->
+    <div class="screen-wrap">
+      <div class="screen-label">Kirjautuminen</div>
+      <div class="device">
+        <div class="device-screen">
+          <div class="login-screen">
+            <h1>Wilma Dashboard</h1>
+            <p class="intro">Anna Wilma-tunnuksesi. Tiedot tallennetaan laitteelle paikallisesti.</p>
+            <div class="fgroup">
+              <label>Wilma-palvelimen osoite</label>
+              <div class="finput">https://koulu.inschool.fi</div>
+              <div class="hint">Esim. https://lappeenranta.inschool.fi</div>
+            </div>
+            <div class="fgroup">
+              <label>Käyttäjätunnus</label>
+              <div class="finput">etunimi.sukunimi@koulu.fi</div>
+              <div class="hint">Sähköpostiosoite, esim. etunimi.sukunimi@koulu.fi</div>
+            </div>
+            <div class="fgroup">
+              <label>Salasana</label>
+              <div class="finput" style="letter-spacing:0.2em;color:rgba(230,237,243,0.5)">••••••••</div>
+            </div>
+            <button class="btn-login">Tallenna ja jatka</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD — NORMAL -->
+    <div class="screen-wrap">
+      <div class="screen-label">Dashboard — 3 lasta</div>
+      <div class="device">
+        <div class="device-screen">
+          <div class="dash-screen">
+            <div class="dash-header">
+              <div class="clock-block">
+                <div class="clock-time">10:42</div>
+                <div class="clock-date">09.04.2026</div>
+              </div>
+              <div class="hamburger"><span></span><span></span><span></span></div>
+            </div>
+            <div class="cols">
+              <!-- Aino -->
+              <div class="col">
+                <div class="col-head">
+                  <div class="kid-name">Aino</div>
+                  <div class="kid-grade">11111</div>
+                  <div class="expand-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                  </div>
+                </div>
+                <div class="col-body">
+                  <div class="sec-title">TORSTAI 09.04.2026</div>
+                  <div class="lesson"><span class="lesson-time">08:00–08:45</span><span class="lesson-subj">Matematiikka</span></div>
+                  <div class="lesson"><span class="lesson-time">09:00–09:45</span><span class="lesson-subj">Suomi</span></div>
+                  <div class="lesson"><span class="lesson-time">11:30–12:15</span><span class="lesson-subj">Liikunta</span></div>
+                  <div class="sec-title">TULEVAT KOKEET</div>
+                  <div class="exam">
+                    <div class="exam-date">14.4.</div>
+                    <div class="exam-name">Matematiikka — Koe</div>
+                    <div class="exam-topic">Murtoluvut luku 7-8</div>
+                  </div>
+                  <div class="sec-title">KOTITEHTÄVÄT</div>
+                  <div class="hw"><div class="hw-subj">Matematiikka</div><div class="hw-text">s. 94 teht. 3-6</div></div>
+                </div>
+              </div>
+              <!-- Mikko -->
+              <div class="col">
+                <div class="col-head">
+                  <div class="kid-name">Mikko</div>
+                  <div class="kid-grade">22222</div>
+                  <div class="expand-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                  </div>
+                </div>
+                <div class="col-body">
+                  <div class="sec-title">TORSTAI 09.04.2026</div>
+                  <div class="lesson"><span class="lesson-time">08:00–08:45</span><span class="lesson-subj">Äidinkieli</span></div>
+                  <div class="lesson"><span class="lesson-time">09:00–09:45</span><span class="lesson-subj">Matematiikka</span></div>
+                  <div class="sec-title">TULEVAT KOKEET</div>
+                  <div class="exam">
+                    <div class="exam-date">16.4.</div>
+                    <div class="exam-name">Äidinkieli — Kirjoitustehtävä</div>
+                  </div>
+                  <div class="sec-title">KOTITEHTÄVÄT</div>
+                  <div class="hw"><div class="hw-subj">Matematiikka</div><div class="hw-text">Harjoitustehtävät s. 67</div></div>
+                </div>
+              </div>
+              <!-- Siiri -->
+              <div class="col">
+                <div class="col-head">
+                  <div class="kid-name">Siiri</div>
+                  <div class="kid-grade">33333</div>
+                  <div class="expand-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                  </div>
+                </div>
+                <div class="col-body">
+                  <div class="sec-title">TORSTAI 09.04.2026</div>
+                  <div class="lesson"><span class="lesson-time">08:15–09:00</span><span class="lesson-subj">Fysiikka</span></div>
+                  <div class="lesson"><span class="lesson-time">09:15–10:00</span><span class="lesson-subj">Historia</span></div>
+                  <div class="lesson"><span class="lesson-time">12:00–12:45</span><span class="lesson-subj">Matematiikka</span></div>
+                  <div class="sec-title">TULEVAT KOKEET</div>
+                  <div class="exam">
+                    <div class="exam-date">11.4.</div>
+                    <div class="exam-name">Fysiikka — Koe</div>
+                    <div class="exam-topic">Sähkö ja magnetismi</div>
+                  </div>
+                  <div class="sec-title">KOTITEHTÄVÄT</div>
+                  <div class="hw"><div class="hw-subj">Fysiikka</div><div class="hw-text">Lue s. 118-124</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD — EXPANDED -->
+    <div class="screen-wrap">
+      <div class="screen-label">Sarake laajennettuna</div>
+      <div class="device">
+        <div class="device-screen device-screen-expanded">
+          <div class="dash-screen">
+            <div class="dash-header">
+              <div class="clock-block">
+                <div class="clock-time">10:42</div>
+                <div class="clock-date">09.04.2026</div>
+              </div>
+              <div class="hamburger"><span></span><span></span><span></span></div>
+            </div>
+            <div class="cols">
+              <div class="col col-expanded" style="flex:1">
+                <div class="col-head">
+                  <div class="kid-name">Aino</div>
+                  <div class="kid-grade">11111</div>
+                  <div class="expand-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>
+                  </div>
+                </div>
+                <div class="col-body">
+                  <div class="sec-title">TORSTAI 09.04.2026</div>
+                  <div class="lesson"><span class="lesson-time">08:00–08:45</span><span class="lesson-subj">Matematiikka</span></div>
+                  <div class="lesson"><span class="lesson-time">09:00–09:45</span><span class="lesson-subj">Suomen kieli ja kirjallisuus</span></div>
+                  <div class="lesson"><span class="lesson-time">11:30–12:15</span><span class="lesson-subj">Liikunta</span></div>
+                  <div class="sec-title">PERJANTAI 10.04.2026</div>
+                  <div class="lesson"><span class="lesson-time">08:00–08:45</span><span class="lesson-subj">Englanti</span></div>
+                  <div class="lesson"><span class="lesson-time">10:00–10:45</span><span class="lesson-subj">Kuvataide</span></div>
+                  <div class="sec-title">TULEVAT KOKEET</div>
+                  <div class="exam">
+                    <div class="exam-date">14.4.</div>
+                    <div class="exam-name">Matematiikka — Koe</div>
+                    <div class="exam-topic">Murtoluvut luku 7-8</div>
+                  </div>
+                  <div class="exam">
+                    <div class="exam-date">22.4.</div>
+                    <div class="exam-name">Englanti — Sanakoe</div>
+                  </div>
+                  <div class="sec-title">KOTITEHTÄVÄT</div>
+                  <div class="hw"><div class="hw-subj">Matematiikka</div><div class="hw-text">s. 94 teht. 3-6</div></div>
+                  <div class="hw"><div class="hw-subj">Suomi</div><div class="hw-text">Lue s. 48-52</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- FEATURES -->
+  <div class="section-label">Ominaisuudet</div>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📅</div>
+      <h3>Lukujärjestykset</h3>
+      <p>Tämän päivän ja huomisen tunnit kellonaikoineen jokaiselle lapselle erikseen.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📝</div>
+      <h3>Tulevat kokeet</h3>
+      <p>Tulevat kokeet lähimmästä kaukaisimpaan järjestettynä. Aihe näytetään, kun se on saatavilla.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📚</div>
+      <h3>Kotitehtävät</h3>
+      <p>Viimeisimmät kotitehtävät aineittain listattuna.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔄</div>
+      <h3>Automaattinen päivitys</h3>
+      <p>Tiedot haetaan Wilmasta 5 minuutin välein. Sessio pidetään auki — vain datapyynnöt tehdään.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🌙</div>
+      <h3>Yöpimennys</h3>
+      <p>Näyttö pimenee automaattisesti klo 22 ja herää aamulla klo 6. Napauttamalla saa myös herätettyä.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Vanha Android-tuki</h3>
+      <p>Suunniteltu toimimaan Android 4.2.2:lla ja 1 GB RAM:lla. Ei ulkoisia kirjastoja.</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Wilma Dashboard · MIT-lisenssi · <a href="https://github.com/larisaukkonen/wilmadashboard">github.com/larisaukkonen/wilmadashboard</a></p>
+  </div>
+
+</div>
+</body>
+</html>
