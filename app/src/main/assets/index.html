@@ -239,17 +239,18 @@ body.dark  .lesson-time { color:rgba(255,255,255,0.65); }
 body.light .lesson-time { color:rgba(0,0,0,0.65); }
 .lesson-subj { display:inline-block; vertical-align:middle; font-size:12px; line-height:1.4; }
 
+/* Hidden checkbox — CSS2 toggle, no JS needed */
+.exam-toggle { display:none; }
 .exam {
   padding:6px 8px; border-radius:5px; border-left:2px solid; margin-bottom:5px;
-  cursor:pointer;
+  cursor:pointer; display:block;
 }
 body.dark  .exam { background:rgba(255,255,255,0.03); }
 body.light .exam { background:rgba(0,0,0,0.03); }
-/* Expanded exam state */
-body.dark  .exam.exam-open { background:rgba(255,255,255,0.09); }
-body.light .exam.exam-open { background:rgba(0,0,0,0.09); }
+body.dark  .exam-toggle:checked + .exam { background:rgba(255,255,255,0.09); }
+body.light .exam-toggle:checked + .exam { background:rgba(0,0,0,0.09); }
 .exam-topic { font-size:10px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.exam.exam-open .exam-topic { white-space:normal; overflow:visible; text-overflow:clip; }
+.exam-toggle:checked + .exam .exam-topic { white-space:normal; overflow:visible; text-overflow:clip; }
 .col:nth-child(1) .exam { border-color:#5bc4f5; }
 .col:nth-child(2) .exam { border-color:#7dd98a; }
 .col:nth-child(3) .exam { border-color:#f5c842; }
@@ -941,8 +942,6 @@ function layoutGrid() {
 }
 window.onresize = function() { layoutGrid(); };
 
-var activeExam = null; // currently expanded exam element
-
 /* ── Dashboard rendering ──────────────────────────────── */
 function renderStudents(students) {
   // Reset expand state before touching the DOM
@@ -958,9 +957,6 @@ function renderStudents(students) {
   newGrid.className = 'grid'; // critical — carries positioning + white-space:nowrap CSS
   oldGrid.parentNode.replaceChild(newGrid, oldGrid);
 
-  // Reset any open exam since grid is replaced
-  activeExam = null;
-
   var html = '';
   for (var i = 0; i < students.length; i++) {
     html += renderCol(students[i], i);
@@ -973,26 +969,6 @@ function renderStudents(students) {
     (function(el, idx) {
       el.addEventListener('click', function() { expandCol(idx); });
     })(heads[j], j);
-  }
-
-  // Attach tap handlers to exam boxes
-  var exams = newGrid.querySelectorAll('.exam');
-  for (var k = 0; k < exams.length; k++) {
-    (function(el) {
-      el.addEventListener('click', function(e) {
-        e.stopPropagation(); // don't bubble to col-head
-        if (activeExam && activeExam !== el) {
-          activeExam.className = activeExam.className.replace(' exam-open', '');
-        }
-        if (activeExam === el) {
-          el.className = el.className.replace(' exam-open', '');
-          activeExam = null;
-        } else {
-          el.className += ' exam-open';
-          activeExam = el;
-        }
-      });
-    })(exams[k]);
   }
 
   // Longer delay for slow Android 4.x device — DOM needs time to lay out
@@ -1075,11 +1051,13 @@ function renderExams(list) {
   var max = list.length < 5 ? list.length : 5;
   for (var i = 0; i < max; i++) {
     var e = list[i];
-    h += '<div class="exam">'
+    var uid = 'ex-' + Date.now() + '-' + i;
+    h += '<input type="checkbox" class="exam-toggle" id="' + uid + '">'
+      + '<label class="exam" for="' + uid + '">'
       + '<div class="exam-date">' + esc(e.date) + '</div>'
       + '<div class="exam-name">' + esc(e.subject) + (e.name ? ' \u2014 ' + esc(e.name) : '') + '</div>'
       + (e.topic ? '<div class="exam-topic">' + esc(e.topic) + '</div>' : '')
-      + '</div>';
+      + '</label>';
   }
   return h;
 }
