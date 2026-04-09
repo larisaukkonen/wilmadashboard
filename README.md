@@ -26,12 +26,14 @@ Sovellus on suunniteltu toimimaan kioskitilassa: se käynnistyy automaattisesti 
 - Wilma-tunnukset (huoltajan käyttäjätunnus ja salasana)
 - Wilma-palvelimen osoite (esim. `https://koulu.inschool.fi`)
 
-## Asennus
+## Käyttöönotto
 
 1. Lataa uusin APK-tiedosto [Releases](../../releases)-sivulta tai GitHub Actions -artefakteista
 2. Salli tuntemattomien lähteiden asennus tabletin asetuksista
 3. Asenna APK
 4. Avaa sovellus ja syötä Wilma-palvelimen osoite sekä huoltajan tunnus ja salasana
+
+**Automaattinen käynnistys virransyötön jälkeen:** Sovellus on ohjelmoitu käynnistymään automaattisesti, kun tabletti käynnistetään. Android 4.2.2 edellyttää kuitenkin, että sovellus on käynnistetty vähintään kerran manuaalisesti ennen kuin automaattinen käynnistys toimii — tämä on Androidin tietoturvarajoitus. Riittää siis, että sovellus avataan kerran asennuksen jälkeen ja kirjautuminen tehdään loppuun. Sen jälkeen sovellus käynnistyy aina automaattisesti tabletin käynnistyessä.
 
 ## Teknistä taustaa
 
