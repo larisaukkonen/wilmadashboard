@@ -390,6 +390,8 @@ public class WilmaBridge {
         }
         out.put("todaySchedule",    todaySched);
         out.put("tomorrowSchedule", tomorrowSched);
+        out.put("todayDate",    today);     // ISO yyyy-MM-dd, JS formats it
+        out.put("tomorrowDate", tomorrow);
 
         JSONArray examsOut = new JSONArray();
         JSONArray hwOut    = new JSONArray();
@@ -414,6 +416,7 @@ public class WilmaBridge {
                         String isoDate  = finnishToIso(rawDate);
                         if (isoDate.isEmpty() || isoDate.compareTo(today) < 0) continue;
                         JSONObject item = new JSONObject();
+                        item.put("isoDate", isoDate); // for sorting, removed before output
                         item.put("date",    displayDate(isoDate));
                         item.put("subject", courseName);
                         item.put("name",    ex.optString("Caption", ex.optString("Name","")));
@@ -440,7 +443,23 @@ public class WilmaBridge {
                 }
             }
         }
-        out.put("upcomingExams",  examsOut);
+        // Sort exams by date ascending (nearest first)
+        java.util.List<JSONObject> examList = new java.util.ArrayList<>();
+        for (int i = 0; i < examsOut.length(); i++) {
+            examList.add(examsOut.getJSONObject(i));
+        }
+        java.util.Collections.sort(examList, new java.util.Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject a, JSONObject b) {
+                return a.optString("isoDate","").compareTo(b.optString("isoDate",""));
+            }
+        });
+        JSONArray sortedExams = new JSONArray();
+        for (JSONObject ex : examList) {
+            ex.remove("isoDate"); // remove sorting helper before sending to JS
+            sortedExams.put(ex);
+        }
+        out.put("upcomingExams",  sortedExams);
         out.put("recentHomework", hwOut);
         return out;
     }

@@ -100,7 +100,7 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
   position:absolute; top:0; left:0; right:0; height:58px;
   overflow:hidden;
 }
-/* Left-side clock, right-side logo using floats */
+/* Clock on left, hamburger on right — both absolute in header */
 .dash-header:after { content:''; display:block; clear:both; }
 body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(8,11,16,0.92); }
 body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:rgba(240,244,248,0.92); }
@@ -113,19 +113,6 @@ body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:r
 .clock-date { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
 body.dark  .clock-date { color:rgba(255,255,255,0.22); }
 body.light .clock-date { color:rgba(0,0,0,0.4); }
-
-.logo {
-  float:right; padding:8px 18px;
-  font-family:'Syne','Arial Black',sans-serif; font-weight:800; font-size:14px;
-  letter-spacing:0.12em; text-transform:uppercase; line-height:42px;
-}
-body.dark  .logo { color:rgba(221,227,240,0.5); }
-body.light .logo { color:rgba(26,29,46,0.4); }
-.logo-dot {
-  width:7px; height:7px; border-radius:50%;
-  background:#5bc4f5; margin-right:8px; display:inline-block;
-  position:relative; top:-1px;
-}
 
 /* ── STUDENT GRID ────────────────────────────────────── */
 /* Absolutely fills the space below the header.
@@ -149,38 +136,31 @@ body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
 body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
 .col:last-child { border-right:none !important; }
 
-/* Expanded/collapsed state: width set by JS; opacity via CSS */
-.col.col-collapsed { opacity:0.4; }
-body.dark  .col.col-expanded { background:rgba(255,255,255,0.015); }
-body.light .col.col-expanded { background:rgba(0,0,0,0.02); }
+/* Expanded/collapsed state handled entirely by layoutGrid() JS */
 
 /* ── COLUMN HEADER ───────────────────────────────────── */
 .col-head {
-  padding:11px 12px 8px; border-bottom:2px solid;
+  padding:13px 12px 11px; border-bottom:3px solid;
   position:relative; overflow:hidden;
   -webkit-user-select:none; user-select:none;
 }
 .kid-name {
-  font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:15px;
+  font-family:'Syne','Arial Black',sans-serif; font-weight:700; font-size:18px;
   letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .kid-grade {
-  font-size:10px; letter-spacing:0.08em; text-transform:uppercase; margin-top:2px;
+  font-size:11px; letter-spacing:0.08em; text-transform:uppercase; margin-top:3px;
   white-space:nowrap; overflow:hidden;
 }
-body.dark  .kid-grade { color:rgba(255,255,255,0.22); }
-body.light .kid-grade { color:rgba(0,0,0,0.4); }
+body.dark  .kid-grade { color:rgba(255,255,255,0.55); }
+body.light .kid-grade { color:rgba(0,0,0,0.55); }
 
-/* Hide name text when collapsed — column too narrow to read */
-.col.col-collapsed .kid-name,
-.col.col-collapsed .kid-grade { opacity:0; }
-
-/* Per-kid accent colors */
-.col:nth-child(1) .col-head { border-color:#5bc4f5; }
-.col:nth-child(2) .col-head { border-color:#7dd98a; }
-.col:nth-child(3) .col-head { border-color:#f5c842; }
-.col:nth-child(4) .col-head { border-color:#c97cf5; }
-.col:nth-child(5) .col-head { border-color:#f5736e; }
+/* Per-kid accent colors — solid background tinted with the accent */
+.col:nth-child(1) .col-head { border-color:#5bc4f5; background:rgba(91,196,245,0.15); }
+.col:nth-child(2) .col-head { border-color:#7dd98a; background:rgba(125,217,138,0.15); }
+.col:nth-child(3) .col-head { border-color:#f5c842; background:rgba(245,200,66,0.15); }
+.col:nth-child(4) .col-head { border-color:#c97cf5; background:rgba(201,124,245,0.15); }
+.col:nth-child(5) .col-head { border-color:#f5736e; background:rgba(245,115,110,0.15); }
 
 .col:nth-child(1) .kid-name { color:#5bc4f5; }
 .col:nth-child(2) .kid-name { color:#7dd98a; }
@@ -188,17 +168,17 @@ body.light .kid-grade { color:rgba(0,0,0,0.4); }
 .col:nth-child(4) .kid-name { color:#c97cf5; }
 .col:nth-child(5) .kid-name { color:#f5736e; }
 
-body.light .col:nth-child(1) .kid-name { color:#0288d1; }
+body.light .col:nth-child(1) .kid-name { color:#0277bd; }
 body.light .col:nth-child(2) .kid-name { color:#2e7d32; }
 body.light .col:nth-child(3) .kid-name { color:#e65100; }
 body.light .col:nth-child(4) .kid-name { color:#7b1fa2; }
 body.light .col:nth-child(5) .kid-name { color:#c62828; }
 
-body.light .col:nth-child(1) .col-head { border-color:#0288d1; }
-body.light .col:nth-child(2) .col-head { border-color:#2e7d32; }
-body.light .col:nth-child(3) .col-head { border-color:#e65100; }
-body.light .col:nth-child(4) .col-head { border-color:#7b1fa2; }
-body.light .col:nth-child(5) .col-head { border-color:#c62828; }
+body.light .col:nth-child(1) .col-head { border-color:#0277bd; background:rgba(2,119,189,0.1); }
+body.light .col:nth-child(2) .col-head { border-color:#2e7d32; background:rgba(46,125,50,0.1); }
+body.light .col:nth-child(3) .col-head { border-color:#e65100; background:rgba(230,81,0,0.1); }
+body.light .col:nth-child(4) .col-head { border-color:#7b1fa2; background:rgba(123,31,162,0.1); }
+body.light .col:nth-child(5) .col-head { border-color:#c62828; background:rgba(198,40,40,0.1); }
 
 /* ── COLUMN BODY ─────────────────────────────────────── */
 /* height set by layoutGrid() JS so overflow-y scrolls correctly */
@@ -207,7 +187,6 @@ body.light .col:nth-child(5) .col-head { border-color:#c62828; }
   padding:8px 12px 14px;
   -webkit-overflow-scrolling:touch;
 }
-.col.col-collapsed .col-body { opacity:0; overflow:hidden; }
 
 /* ── SECTIONS ────────────────────────────────────────── */
 .sec { margin-bottom:14px; }
@@ -215,8 +194,8 @@ body.light .col:nth-child(5) .col-head { border-color:#c62828; }
   font-size:9px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase;
   margin-bottom:6px; padding-bottom:4px;
 }
-body.dark  .sec-title { color:rgba(255,255,255,0.22); border-bottom:1px solid rgba(255,255,255,0.06); }
-body.light .sec-title { color:rgba(0,0,0,0.35); border-bottom:1px solid rgba(0,0,0,0.07); }
+body.dark  .sec-title { color:#ffffff; border-bottom:1px solid rgba(255,255,255,0.06); }
+body.light .sec-title { color:#1a1d2e; border-bottom:1px solid rgba(0,0,0,0.07); }
 
 .lesson {
   padding:4px 0;
@@ -268,20 +247,32 @@ body.light .hw-subj { color:rgba(0,0,0,0.5); }
 body.dark  .empty { color:rgba(255,255,255,0.2); }
 body.light .empty { color:rgba(0,0,0,0.28); }
 
+/* ── HAMBURGER BUTTON ────────────────────────────────────── */
+#btn-hamburger {
+  position:absolute; top:0; right:0;
+  width:58px; height:58px;
+  background:transparent; border:none; cursor:pointer;
+  padding:14px 16px;
+  -webkit-appearance:none;
+}
+#btn-hamburger span {
+  display:block; width:100%; height:2px; margin-bottom:5px;
+  border-radius:2px;
+}
+#btn-hamburger span:last-child { margin-bottom:0; }
+body.dark  #btn-hamburger span { background:rgba(221,227,240,0.6); }
+body.light #btn-hamburger span { background:rgba(26,29,46,0.5); }
+#btn-hamburger:active { opacity:0.6; }
+
 /* ── OVERLAY ─────────────────────────────────────────── */
 #overlay {
   display:none; position:fixed; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.75); z-index:150;
-  text-align:center;
+  background:rgba(0,0,0,0.55); z-index:150;
 }
 #overlay.vis { display:block; }
-/* Vertical centering trick without flex */
-#overlay:before {
-  content:''; display:inline-block; height:100%; vertical-align:middle;
-}
 .ov-card {
-  display:inline-block; vertical-align:middle;
-  border-radius:16px; padding:28px 32px; min-width:268px; text-align:center;
+  position:absolute; top:58px; right:8px;
+  border-radius:12px; padding:20px 24px; min-width:240px; text-align:center;
 }
 body.dark  .ov-card { background:#1c1c28; border:1px solid rgba(255,255,255,0.12); }
 body.light .ov-card { background:#fff; border:1px solid rgba(0,0,0,0.12); }
@@ -386,7 +377,9 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
       <div class="clock-time" id="clock">--:--</div>
       <div class="clock-date" id="cdate"></div>
     </div>
-    <div class="logo"><span class="logo-dot"></span>Wilma</div>
+    <button id="btn-hamburger" onclick="openOverlay()">
+      <span></span><span></span><span></span>
+    </button>
   </div>
   <div class="grid" id="grid"></div>
 </div>
@@ -512,7 +505,8 @@ var TR = {
     noLessons:   'ei oppitunteja',
     noExams:     'ei tulevia kokeita',
     noHw:        'ei kotiteht\xe4vi\xe4',
-    days:   ['su','ma','ti','ke','to','pe','la'],
+    days:     ['su','ma','ti','ke','to','pe','la'],
+    daysFull: ['sunnuntai','maanantai','tiistai','keskiviikko','torstai','perjantai','lauantai'],
     months: ['tammikuuta','helmikuuta','maaliskuuta','huhtikuuta','toukokuuta',
              'kes\xe4kuuta','hein\xe4kuuta','elokuuta','syyskuuta','lokakuuta','marraskuuta','joulukuuta']
   },
@@ -548,7 +542,8 @@ var TR = {
     noLessons:   'no lessons',
     noExams:     'no upcoming exams',
     noHw:        'no homework',
-    days:   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    days:     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    daysFull: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
     months: ['January','February','March','April','May','June',
              'July','August','September','October','November','December']
   }
@@ -695,26 +690,7 @@ function checkSleep() {
 }
 setInterval(checkSleep, 60000);
 
-/* ── Activity recording — catch all touches on dash ──────── */
-/* Also used as the touchstart entry for long-press detection. */
-var lpTimer = null;
-var LP_MS   = 700;
-
-function lpStart() {
-  if (!S.overlayOpen) lpTimer = setTimeout(function(){ lpTimer=null; openOverlay(); }, LP_MS);
-}
-function lpCancel() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
-
-/* Catch all touches on the dashboard and black screen.
-   Document-wide listeners on old Android can interfere with
-   text input focus and keyboard handling — avoid them.     */
-var dashEl = $('screen-dash');
-dashEl.addEventListener('touchstart',  lpStart,  false);
-dashEl.addEventListener('touchend',    lpCancel, false);
-dashEl.addEventListener('touchmove',   lpCancel, false);
-dashEl.addEventListener('touchcancel', lpCancel, false);
-dashEl.addEventListener('mousedown',   lpStart,  false);
-dashEl.addEventListener('mouseup',     lpCancel, false);
+/* ── No long press — menu opens from hamburger icon only ── */
 
 /* ── Overlay ──────────────────────────────────────────── */
 function openOverlay() {
@@ -883,8 +859,6 @@ function startPolling() {
 }
 
 /* ── Layout engine ────────────────────────────────────── */
-/* Sets column widths and col-body heights directly via JS.
-   No flexbox. Works on all Android / WebKit versions.      */
 function layoutGrid() {
   var grid = $('grid');
   if (!grid) return;
@@ -894,28 +868,23 @@ function layoutGrid() {
   var n = cols.length;
   if (!n) return;
 
-  // Calculate widths as whole-number percentages
-  var widths = [];
-  if (S.expandedIdx >= 0 && S.expandedIdx < n && n > 1) {
-    var expW = 65;
-    var colW = Math.floor((100 - expW) / (n - 1));
-    var rem  = 100 - expW - colW * (n - 1);
-    for (var i = 0; i < n; i++) {
-      widths.push(i === S.expandedIdx ? expW : (colW + (rem-- > 0 ? 1 : 0)));
-    }
-  } else {
-    var base = Math.floor(100 / n);
-    var rem2 = 100 - base * n;
-    for (var i = 0; i < n; i++) {
-      widths.push(base + (rem2-- > 0 ? 1 : 0));
-    }
-  }
+  var expanded = S.expandedIdx >= 0 && S.expandedIdx < n;
+  var equalW   = Math.floor(100 / n);
+  var rem      = 100 - equalW * n;
 
   for (var i = 0; i < n; i++) {
     var col  = cols[i];
     var head = col.querySelector('.col-head');
     var body = col.querySelector('.col-body');
-    col.style.width  = widths[i] + '%';
+
+    if (expanded) {
+      col.style.display = (i === S.expandedIdx) ? 'block' : 'none';
+      col.style.width   = '100%';
+    } else {
+      col.style.display = 'block';
+      col.style.width   = (equalW + (rem-- > 0 ? 1 : 0)) + '%';
+    }
+
     col.style.height = gridH + 'px';
     if (head && body) {
       body.style.height = (gridH - head.offsetHeight) + 'px';
@@ -927,13 +896,21 @@ window.onresize = function() { layoutGrid(); };
 /* ── Dashboard rendering ──────────────────────────────── */
 function renderStudents(students) {
   var grid = $('grid');
+
+  // Explicitly clear first — on old WebKit, assigning innerHTML
+  // directly over existing content can leave ghost layers.
+  // Reset expand state so layoutGrid starts clean.
+  S.expandedIdx = -1;
+  if (S.collapseTimer) { clearTimeout(S.collapseTimer); S.collapseTimer = null; }
+  grid.innerHTML = '';
+
   var html = '';
   for (var i = 0; i < students.length; i++) {
     html += renderCol(students[i], i);
   }
   grid.innerHTML = html;
 
-  // Attach tap handlers (single-arg classList for old Android compat)
+  // Attach tap handlers
   var cols = grid.querySelectorAll('.col');
   for (var j = 0; j < cols.length; j++) {
     (function(el, idx) {
@@ -945,11 +922,32 @@ function renderStudents(students) {
   setTimeout(layoutGrid, 60);
 }
 
+/** Convert ISO date "2025-04-09" to e.g. "TORSTAI 09.04.2025" (fi) or "THURSDAY 09.04." (en) */
+function isoToScheduleTitle(iso) {
+  if (!iso || iso.length < 10) return iso;
+  try {
+    var y  = parseInt(iso.substring(0, 4), 10);
+    var mo = parseInt(iso.substring(5, 7), 10);
+    var d  = parseInt(iso.substring(8, 10), 10);
+    var dt = new Date(y, mo - 1, d);
+    var dayName = t('daysFull')[dt.getDay()].toUpperCase();
+    var dd = d  < 10 ? '0' + d  : '' + d;
+    var mm = mo < 10 ? '0' + mo : '' + mo;
+    var dateStr = (S.lang === 'fi')
+      ? dd + '.' + mm + '.' + y
+      : dd + '.' + mm + '.';
+    return dayName + ' ' + dateStr;
+  } catch(e) { return iso; }
+}
+
 function renderCol(s, idx) {
   var today    = s.todaySchedule    || s.today    || [];
   var tomorrow = s.tomorrowSchedule || s.tomorrow || [];
   var exams    = s.upcomingExams    || [];
   var hw       = s.recentHomework   || [];
+
+  var todayTitle    = s.todayDate    ? isoToScheduleTitle(s.todayDate)    : t('secToday');
+  var tomorrowTitle = s.tomorrowDate ? isoToScheduleTitle(s.tomorrowDate) : t('secTomorrow');
 
   return '<div class="col" data-idx="' + idx + '">'
     + '<div class="col-head">'
@@ -957,10 +955,10 @@ function renderCol(s, idx) {
     +   '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
     + '</div>'
     + '<div class="col-body">'
-    +   sec(t('secToday'),    renderLessons(today))
-    +   sec(t('secTomorrow'), renderLessons(tomorrow))
-    +   sec(t('secExams'),    renderExams(exams))
-    +   sec(t('secHw'),       renderHw(hw))
+    +   sec(todayTitle,        renderLessons(today))
+    +   sec(tomorrowTitle,     renderLessons(tomorrow))
+    +   sec(t('secExams'),     renderExams(exams))
+    +   sec(t('secHw'),        renderHw(hw))
     + '</div>'
     + '</div>';
 }
@@ -1016,28 +1014,15 @@ function collapseAll() {
   clearTimeout(S.collapseTimer);
   S.collapseTimer = null;
   S.expandedIdx = -1;
-  var cols = document.querySelectorAll('.col');
-  for (var i = 0; i < cols.length; i++) {
-    cols[i].className = 'col';      // reset state classes in one shot
-    cols[i].style.opacity = '1';
-  }
   layoutGrid();
 }
 
 function expandCol(idx) {
-  if (S.expandedIdx === idx) { collapseAll(); return; }
+  var cols = document.querySelectorAll('.col');
+  // If already expanded and only one col, nothing to collapse to
+  if (S.expandedIdx === idx && cols.length > 1) { collapseAll(); return; }
   clearTimeout(S.collapseTimer);
   S.expandedIdx = idx;
-  var cols = document.querySelectorAll('.col');
-  for (var i = 0; i < cols.length; i++) {
-    if (i === idx) {
-      cols[i].className    = 'col col-expanded';
-      cols[i].style.opacity = '1';
-    } else {
-      cols[i].className    = 'col col-collapsed';
-      cols[i].style.opacity = '0.4';
-    }
-  }
   layoutGrid();
   S.collapseTimer = setTimeout(collapseAll, EXPAND_MS);
 }
