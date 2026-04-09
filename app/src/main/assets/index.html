@@ -873,23 +873,34 @@ function layoutGrid() {
 
   var expanded = S.expandedIdx >= 0 && S.expandedIdx < n;
 
-  for (var i = 0; i < n; i++) {
-    var col  = cols[i];
-    var head = col.querySelector('.col-head');
-    var body = col.querySelector('.col-body');
-
-    if (expanded) {
-      // Hide all others; expanded col becomes the sole table-cell
-      // (table-layout:fixed with one visible cell = 100% width)
-      col.style.display = (i === S.expandedIdx) ? 'table-cell' : 'none';
-    } else {
-      // Restore all to table-cell — table-layout:fixed gives equal widths
-      col.style.display = 'table-cell';
+  if (expanded) {
+    // Switch grid to block so we can show one col at full width
+    // (display:none on table-cell is unreliable on old WebKit)
+    grid.style.display = 'block';
+    for (var i = 0; i < n; i++) {
+      var col  = cols[i];
+      var head = col.querySelector('.col-head');
+      var body = col.querySelector('.col-body');
+      if (i === S.expandedIdx) {
+        col.style.display = 'block';
+        col.style.width   = '100%';
+        col.style.height  = gridH + 'px';
+        if (head && body) body.style.height = (gridH - head.offsetHeight) + 'px';
+      } else {
+        col.style.display = 'none';
+      }
     }
-
-    col.style.height = gridH + 'px';
-    if (head && body) {
-      body.style.height = (gridH - head.offsetHeight) + 'px';
+  } else {
+    // Back to table — equal widths automatically
+    grid.style.display = 'table';
+    for (var i = 0; i < n; i++) {
+      var col  = cols[i];
+      var head = col.querySelector('.col-head');
+      var body = col.querySelector('.col-body');
+      col.style.display = 'table-cell';
+      col.style.width   = '';
+      col.style.height  = gridH + 'px';
+      if (head && body) body.style.height = (gridH - head.offsetHeight) + 'px';
     }
   }
 }
@@ -1020,9 +1031,12 @@ function collapseAll() {
   clearTimeout(S.collapseTimer);
   S.collapseTimer = null;
   S.expandedIdx = -1;
+  var grid = $('grid');
+  if (grid) grid.style.display = 'table';
   var cols = document.querySelectorAll('.col');
   for (var i = 0; i < cols.length; i++) {
     cols[i].style.display = 'table-cell';
+    cols[i].style.width   = '';
   }
   layoutGrid();
 }
