@@ -116,24 +116,15 @@ body.dark  .clock-date { color:rgba(255,255,255,0.22); }
 body.light .clock-date { color:rgba(0,0,0,0.4); }
 
 /* ── STUDENT GRID ────────────────────────────────────── */
-/* display:table is supported on every WebKit since 420.
-   Columns are table-cells — equal width is automatic, no JS
-   width calculation needed. Much more reliable than inline-block
-   on Android 4.2.2.                                        */
 .grid {
   position:absolute; top:58px; left:0; right:0; bottom:0;
   overflow:hidden;
-  display:table;
-  width:100%;
-  table-layout:fixed;  /* equal column widths automatically */
-  border-collapse:collapse;
 }
 
 /* ── COLUMN ──────────────────────────────────────────── */
 .col {
-  display:table-cell;
-  vertical-align:top;
-  overflow:hidden; position:relative;
+  position:absolute; top:0; bottom:0;
+  overflow:hidden;
   -webkit-box-sizing:border-box; box-sizing:border-box;
 }
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
@@ -165,11 +156,14 @@ body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
   -webkit-transform:translateY(-50%);
   transform:translateY(-50%);
   opacity:0.45;
-  line-height:0; /* remove inline-block gap */
+  line-height:0;
   pointer-events:none;
 }
-/* hide icon when column is expanded (header becomes collapse trigger) */
-.col-expanded .expand-icon { display:none; }
+/* Normal: top-right arrow (expand). Expanded: bottom-left arrow (collapse). */
+.expand-icon .icon-expand   { display:block; }
+.expand-icon .icon-collapse { display:none; }
+.col-expanded .expand-icon .icon-expand   { display:none; }
+.col-expanded .expand-icon .icon-collapse { display:block; }
 .kid-name {
   font-family:sans-serif; font-weight:700; font-size:18px;
   letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -207,11 +201,16 @@ body.light .col:nth-child(4) .col-head { border-color:#7b1fa2; background:rgba(1
 body.light .col:nth-child(5) .col-head { border-color:#c62828; background:rgba(198,40,40,0.1); }
 
 /* ── COLUMN BODY ─────────────────────────────────────── */
-/* height set by layoutGrid() JS so overflow-y scrolls correctly */
+/* position:absolute with bottom:0 gives a hard height constraint
+   so overflow-y:auto actually triggers. table-cell height was
+   advisory only — content always expanded past it.          */
 .col-body {
+  position:absolute; left:0; right:0; bottom:0;
+  /* top is set by layoutGrid() JS = col-head height */
   overflow-y:auto; overflow-x:hidden;
   padding:8px 12px 14px;
   -webkit-overflow-scrolling:touch;
+  -webkit-box-sizing:border-box; box-sizing:border-box;
 }
 
 /* ── SECTIONS ────────────────────────────────────────── */
@@ -374,6 +373,7 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
     <div class="fgroup">
       <label id="lbl-user"></label>
       <input type="text" id="inp-user" autocomplete="off" autocapitalize="off" autocorrect="off">
+      <div class="hint" id="lbl-user-hint"></div>
     </div>
     <div class="fgroup">
       <label id="lbl-pass"></label>
@@ -412,7 +412,6 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
 
     <div id="panel-main">
       <h2 id="ov-title"></h2>
-      <button class="ov-btn" id="btn-ov-theme"></button>
       <button class="ov-btn" id="btn-ov-refresh"></button>
       <button class="ov-btn" id="btn-ov-settings"></button>
       <button class="ov-btn danger" id="btn-ov-sleep"></button>
@@ -426,6 +425,7 @@ body.light .ov-sec-lbl { color:rgba(0,0,0,0.38); }
         <button class="ov-lang-btn" id="ov-fi">FI<span>Suomi</span></button>
         <button class="ov-lang-btn" id="ov-en">EN<span>English</span></button>
       </div>
+      <button class="ov-btn" id="btn-ov-theme" style="margin-top:6px"></button>
       <button class="ov-btn danger" id="btn-ov-logout" style="margin-top:6px"></button>
       <button class="ov-btn" id="btn-ov-back" style="margin-top:6px"></button>
     </div>
@@ -500,6 +500,7 @@ var TR = {
     lblServer:   'Wilma-palvelimen osoite',
     lblHint:     'Esim. https://lappeenranta.inschool.fi',
     lblUser:     'K\xe4ytt\xe4j\xe4tunnus',
+    lblUserHint: 'S\xe4hk\xf6postiosoite, esim. etunimi.sukunimi@koulu.fi',
     lblPass:     'Salasana',
     btnSave:     'Tallenna ja jatka',
     saving:      'Kirjaudutaan\u2026',
@@ -536,6 +537,7 @@ var TR = {
     lblServer:   'Wilma server address',
     lblHint:     'E.g. https://lappeenranta.inschool.fi',
     lblUser:     'Username',
+    lblUserHint: 'Email address, e.g. firstname.lastname@school.fi',
     lblPass:     'Password',
     btnSave:     'Save and continue',
     saving:      'Signing in\u2026',
@@ -630,6 +632,7 @@ function applyStrings() {
   $('lbl-server').innerHTML    = t('lblServer');
   $('lbl-hint').innerHTML      = t('lblHint');
   $('lbl-user').innerHTML      = t('lblUser');
+  $('lbl-user-hint').innerHTML = t('lblUserHint');
   $('lbl-pass').innerHTML      = t('lblPass');
   $('btn-save').innerHTML      = t('btnSave');
   $('loading-text').innerHTML  = t('loading');
@@ -892,10 +895,6 @@ function startPolling() {
 function layoutGrid() {
   var grid = $('grid');
   if (!grid) return;
-  var gridH = grid.offsetHeight;
-  // Fallback if grid not yet laid out
-  if (!gridH) gridH = window.innerHeight - 58;
-  if (!gridH) return;
   var cols = grid.querySelectorAll('.col');
   var n = cols.length;
   if (!n) return;
@@ -903,33 +902,33 @@ function layoutGrid() {
   var expanded = S.expandedIdx >= 0 && S.expandedIdx < n;
 
   if (expanded) {
-    // Switch grid to block so we can show one col at full width
-    // (display:none on table-cell is unreliable on old WebKit)
-    grid.style.display = 'block';
     for (var i = 0; i < n; i++) {
       var col  = cols[i];
       var head = col.querySelector('.col-head');
       var body = col.querySelector('.col-body');
       if (i === S.expandedIdx) {
         col.style.display = 'block';
+        col.style.left    = '0';
         col.style.width   = '100%';
-        col.style.height  = gridH + 'px';
-        if (head && body) body.style.height = (gridH - head.offsetHeight) + 'px';
       } else {
         col.style.display = 'none';
       }
+      if (head && body) body.style.top = head.offsetHeight + 'px';
     }
   } else {
-    // Back to table — equal widths automatically
-    grid.style.display = 'table';
+    // Equal percentage widths — last column gets any remainder
+    var baseW = Math.floor(100 / n);
+    var left  = 0;
     for (var i = 0; i < n; i++) {
       var col  = cols[i];
       var head = col.querySelector('.col-head');
       var body = col.querySelector('.col-body');
-      col.style.display = 'table-cell';
-      col.style.width   = '';
-      col.style.height  = gridH + 'px';
-      if (head && body) body.style.height = (gridH - head.offsetHeight) + 'px';
+      var w = (i === n - 1) ? (100 - left) : baseW;
+      col.style.display = 'block';
+      col.style.left    = left + '%';
+      col.style.width   = w + '%';
+      if (head && body) body.style.top = head.offsetHeight + 'px';
+      left += w;
     }
   }
 }
@@ -1002,9 +1001,13 @@ function renderCol(s, idx) {
     +     '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
     +   '</div>'
     +   '<div class="expand-icon">'
-    +     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
+    +     '<svg class="icon-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
     +       '<line x1="7" y1="17" x2="17" y2="7"></line>'
     +       '<polyline points="7 7 17 7 17 17"></polyline>'
+    +     '</svg>'
+    +     '<svg class="icon-collapse" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
+    +       '<line x1="17" y1="7" x2="7" y2="17"></line>'
+    +       '<polyline points="17 17 7 17 7 7"></polyline>'
     +     '</svg>'
     +   '</div>'
     + '</div>'
@@ -1068,13 +1071,9 @@ function collapseAll() {
   clearTimeout(S.collapseTimer);
   S.collapseTimer = null;
   S.expandedIdx = -1;
-  var grid = $('grid');
-  if (grid) grid.style.display = 'table';
   var cols = document.querySelectorAll('.col');
   for (var i = 0; i < cols.length; i++) {
-    cols[i].style.display = 'table-cell';
-    cols[i].style.width   = '';
-    cols[i].className     = 'col';
+    cols[i].className = 'col';
   }
   layoutGrid();
 }
