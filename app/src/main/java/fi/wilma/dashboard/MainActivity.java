@@ -70,16 +70,28 @@ public class MainActivity extends Activity {
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         ws.setDefaultTextEncodingName("UTF-8");
 
+        // Disable autocorrect and suggestions globally for the WebView.
+        // This is the only reliable way to prevent Android's keyboard from
+        // auto-capitalizing text fields on API 17 regardless of HTML attributes.
+        ws.setSaveFormData(false);
+
         if (Build.VERSION.SDK_INT >= 21) {
             ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
+
+        // Tell the input connection to use TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        // so the IME knows not to capitalise or correct anything
+        webView.setInputType(
+            android.text.InputType.TYPE_CLASS_TEXT |
+            android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS |
+            android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        );
 
         webView.addJavascriptInterface(bridge, "WilmaBridge");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                // Keep all navigation inside
                 return false;
             }
         });
