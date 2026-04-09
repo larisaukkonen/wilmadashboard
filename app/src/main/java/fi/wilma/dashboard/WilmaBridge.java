@@ -54,9 +54,9 @@ public class WilmaBridge {
     private static final String KEY_CACHE= "cachedData";
 
     private static final String USER_AGENT =
-        "Mozilla/5.0 (Linux; Android 4.2.2; GT-P3110) " +
-        "AppleWebKit/534.30 (KHTML, like Gecko) " +
-        "Version/4.0 Mobile Safari/534.30";
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
+        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+        "Chrome/123.0.0.0 Safari/537.36";
 
     private static final String[] NAV_KEYWORDS = {
         "messages","viestit","schedule","lukujärjestys",
