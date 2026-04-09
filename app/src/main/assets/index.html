@@ -133,7 +133,7 @@ body.light .clock-date { color:rgba(0,0,0,0.4); }
 .col {
   display:table-cell;
   vertical-align:top;
-  overflow:hidden; cursor:pointer; position:relative;
+  overflow:hidden; position:relative;
   -webkit-box-sizing:border-box; box-sizing:border-box;
 }
 body.dark  .col { border-right:1px solid rgba(255,255,255,0.05); }
@@ -151,8 +151,25 @@ body.light .col { border-right:1px solid rgba(0,0,0,0.06); }
 .col-head {
   padding:13px 12px 11px; border-bottom:3px solid;
   position:relative; overflow:hidden;
+  cursor:pointer;
   -webkit-user-select:none; user-select:none;
+  /* lay out name+grade on left, icon on right */
 }
+.col-head-inner {
+  display:block;
+  overflow:hidden;
+  padding-right:24px; /* leave room for icon */
+}
+.expand-icon {
+  position:absolute; top:50%; right:10px;
+  -webkit-transform:translateY(-50%);
+  transform:translateY(-50%);
+  opacity:0.45;
+  line-height:0; /* remove inline-block gap */
+  pointer-events:none;
+}
+/* hide icon when column is expanded (header becomes collapse trigger) */
+.col-expanded .expand-icon { display:none; }
 .kid-name {
   font-family:sans-serif; font-weight:700; font-size:18px;
   letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -194,6 +211,7 @@ body.light .col:nth-child(5) .col-head { border-color:#c62828; background:rgba(1
 .col-body {
   overflow-y:auto; overflow-x:hidden;
   padding:8px 12px 14px;
+  position:relative;
   -webkit-overflow-scrolling:touch;
 }
 
@@ -939,12 +957,12 @@ function renderStudents(students) {
   }
   newGrid.innerHTML = html;
 
-  // Attach tap handlers
-  var cols = newGrid.querySelectorAll('.col');
-  for (var j = 0; j < cols.length; j++) {
+  // Attach tap handler to col-head only — body stays free for scrolling
+  var heads = newGrid.querySelectorAll('.col-head');
+  for (var j = 0; j < heads.length; j++) {
     (function(el, idx) {
       el.addEventListener('click', function() { expandCol(idx); });
-    })(cols[j], j);
+    })(heads[j], j);
   }
 
   // Delay so offsetHeight is readable before measuring
@@ -980,8 +998,16 @@ function renderCol(s, idx) {
 
   return '<div class="col" data-idx="' + idx + '">'
     + '<div class="col-head">'
-    +   '<div class="kid-name">' + esc(s.student || s.name || '') + '</div>'
-    +   '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
+    +   '<div class="col-head-inner">'
+    +     '<div class="kid-name">' + esc(s.student || s.name || '') + '</div>'
+    +     '<div class="kid-grade">' + esc(s.studentNumber || '') + '</div>'
+    +   '</div>'
+    +   '<div class="expand-icon">'
+    +     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
+    +       '<line x1="7" y1="17" x2="17" y2="7"></line>'
+    +       '<polyline points="7 7 17 7 17 17"></polyline>'
+    +     '</svg>'
+    +   '</div>'
     + '</div>'
     + '<div class="col-body">'
     +   sec(todayTitle,        renderLessons(today))
@@ -1049,6 +1075,7 @@ function collapseAll() {
   for (var i = 0; i < cols.length; i++) {
     cols[i].style.display = 'table-cell';
     cols[i].style.width   = '';
+    cols[i].className     = 'col';
   }
   layoutGrid();
 }
@@ -1058,6 +1085,10 @@ function expandCol(idx) {
   if (S.expandedIdx === idx && cols.length > 1) { collapseAll(); return; }
   clearTimeout(S.collapseTimer);
   S.expandedIdx = idx;
+  // Mark expanded col so CSS can hide the expand icon
+  for (var i = 0; i < cols.length; i++) {
+    cols[i].className = (i === idx) ? 'col col-expanded' : 'col';
+  }
   layoutGrid();
   S.collapseTimer = setTimeout(collapseAll, EXPAND_MS);
 }

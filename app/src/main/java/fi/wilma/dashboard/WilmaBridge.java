@@ -84,7 +84,14 @@ public class WilmaBridge {
         this.webViewRef  = new WeakReference<>(webView);
         this.activityRef = new WeakReference<>(activity);
         this.prefs       = activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        initSSL();
+
+        // Run SSL init on a background thread — on Android 4.x, SecureRandom
+        // initialisation can block for several seconds waiting for /dev/random
+        // entropy. No race condition risk since no network call can happen
+        // before the user submits credentials.
+        new Thread(new Runnable() {
+            @Override public void run() { initSSL(); }
+        }).start();
     }
 
     // ── SSL setup: trust all certs + enable TLS 1.2 on old Android ──────────
