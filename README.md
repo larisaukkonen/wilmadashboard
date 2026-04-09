@@ -21,6 +21,18 @@ Sovellus on suunniteltu toimimaan kioskitilassa: se käynnistyy automaattisesti 
 - Tuki suomen ja englannin kielelle
 - Tumma ja vaalea teema
 
+## Android-oikeudet
+
+Sovellus pyytää seuraavat oikeudet:
+
+| Oikeus | Tarkoitus |
+|--------|-----------|
+| `INTERNET` | Yhteys Wilma-palvelimeen tietojen hakemiseksi |
+| `WAKE_LOCK` | Estää laitetta sammumasta kesken tiedonhaun |
+| `RECEIVE_BOOT_COMPLETED` | Käynnistää sovelluksen automaattisesti laitteen käynnistyessä |
+
+Sovellus ei pyydä pääsyä kameraan, sijaintiin, kontakteihin, tallennustilaan tai mihinkään muuhun arkaluonteiseen dataan.
+
 ## Vaatimukset
 
 - Android 4.2.2 tai uudempi (yhteensopiva Android 14 asti, testattu Samsung SM-T110 -tabletilla)
