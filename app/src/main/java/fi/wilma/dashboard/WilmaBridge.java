@@ -310,7 +310,11 @@ public class WilmaBridge {
         doLogin(baseUrl, username, password);
 
         // GET / immediately after fresh login — no student pre-selected yet
-        String homeHtml = httpGet(baseUrl + "/");
+        // GET / without following redirects — Wilma may redirect to the last
+        // selected student's page (/!NUMBER/). We want the parent home page
+        // which lists ALL children. If we get a redirect, follow it manually
+        // but also fetch the redirect target so we parse both pages.
+        String homeHtml = httpGetNoRedirect(baseUrl + "/");
         if (looksLikeLoginPage(homeHtml)) {
             throw new Exception("Kirjautuminen epäonnistui");
         }
@@ -556,6 +560,40 @@ public class WilmaBridge {
         sendCookies(conn, urlStr);
         collectCookies(conn, urlStr);
         return readAndClose(conn);
+    }
+
+    /**
+     * Fetch GET / without auto-following redirects.
+     * Wilma often redirects / → /!STUDENT_NUMBER/ (last selected student).
+     * We capture the Location header, fetch the redirect target separately,
+     * and combine both HTML bodies so parseStudents() sees ALL student links.
+     */
+    private String httpGetNoRedirect(String urlStr) throws IOException {
+        HttpURLConnection conn = openConnection(urlStr);
+        conn.setRequestMethod("GET");
+        conn.setInstanceFollowRedirects(false);
+        sendCookies(conn, urlStr);
+
+        int status = conn.getResponseCode();
+        String location = conn.getHeaderField("Location");
+        collectCookies(conn, urlStr);
+        String body = readAndClose(conn);
+
+        // If redirected, fetch the target too and combine both HTML pages
+        if (location != null && !location.isEmpty()
+                && (status == 301 || status == 302 || status == 303)) {
+            if (!location.startsWith("http")) {
+                try {
+                    java.net.URL base = new java.net.URL(urlStr);
+                    location = new java.net.URL(base, location).toString();
+                } catch (Exception e) { /* use as-is */ }
+            }
+            try {
+                String redirectBody = httpGet(location);
+                return (body != null ? body : "") + "\n" + redirectBody;
+            } catch (Exception ignored) {}
+        }
+        return body != null ? body : "";
     }
 
     private HttpURLConnection openConnection(String urlStr) throws IOException {

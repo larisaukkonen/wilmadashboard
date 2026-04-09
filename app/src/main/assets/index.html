@@ -96,12 +96,12 @@ body.light { background:#f0f4f8; color:#1a1d2e; }
 
 .dash-header {
   position:absolute; top:0; left:0; right:0; height:58px;
-  overflow:hidden;
+  overflow:hidden; z-index:20;
 }
 /* Clock on left, hamburger on right — both absolute in header */
 .dash-header:after { content:''; display:block; clear:both; }
-body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(8,11,16,0.92); }
-body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:rgba(240,244,248,0.92); }
+body.dark  .dash-header { border-bottom:1px solid rgba(255,255,255,0.06); background:#080b10; }
+body.light .dash-header { border-bottom:1px solid rgba(0,0,0,0.08); background:#f0f4f8; }
 
 .clock-block { float:left; padding:8px 18px; }
 .clock-time {
