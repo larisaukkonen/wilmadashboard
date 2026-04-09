@@ -211,6 +211,7 @@ public class WilmaBridge {
         latestDataJson    = "";
         latestSetupResult = "";
         latestError       = "";
+        cachedStudents    = null;
         resetCookies();
     }
 
@@ -302,33 +303,36 @@ public class WilmaBridge {
 
     // ── Data fetching ─────────────────────────────────────────────────────────
 
+    // Cached student list — only re-fetched when session is fresh
+    private List<String[]> cachedStudents = null;
+
     private String fetchAllStudents() throws Exception {
         String baseUrl  = prefs.getString(KEY_URL,  "");
         String username = prefs.getString(KEY_USER, "");
         String password = prefs.getString(KEY_PASS, "");
         if (baseUrl.isEmpty()) throw new Exception("Not configured");
 
-        // Always start with a fresh login.
-        // wilmai does exactly the same: it creates a new cookieless session
-        // so that GET / returns the parent home page listing ALL children.
-        // Reusing an existing session causes Wilma to redirect / to the
-        // last-selected student's page, hiding the other child entirely.
-        resetCookies();
-        doLogin(baseUrl, username, password);
-
-        // GET / immediately after fresh login — no student pre-selected yet
-        // GET / without following redirects — Wilma may redirect to the last
-        // selected student's page (/!NUMBER/). We want the parent home page
-        // which lists ALL children. If we get a redirect, follow it manually
-        // but also fetch the redirect target so we parse both pages.
-        String homeHtml = httpGetNoRedirect(baseUrl + "/");
-        if (looksLikeLoginPage(homeHtml)) {
-            throw new Exception("Kirjautuminen epäonnistui");
-        }
-
-        List<String[]> students = parseStudents(homeHtml);
-        if (students.isEmpty()) {
-            throw new Exception("Oppilaita ei löydy — tarkista Wilma-osoite");
+        // Only do a full fresh login (cookie reset) when we have no
+        // cached student list. This keeps the session alive across polls
+        // and avoids 3-4 extra HTTPS round-trips every 5 minutes.
+        if (cachedStudents == null) {
+            resetCookies();
+            doLogin(baseUrl, username, password);
+            String homeHtml = httpGetNoRedirect(baseUrl + "/");
+            if (looksLikeLoginPage(homeHtml)) {
+                throw new Exception("Kirjautuminen epäonnistui");
+            }
+            cachedStudents = parseStudents(homeHtml);
+            if (cachedStudents.isEmpty()) {
+                cachedStudents = null;
+                throw new Exception("Oppilaita ei löydy — tarkista Wilma-osoite");
+            }
+        } else {
+            // Reuse existing session. If it has expired, Wilma will return
+            // a login page — detect that and do a fresh login once.
+            if (!hasSession()) {
+                doLogin(baseUrl, username, password);
+            }
         }
 
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Helsinki"));
@@ -338,11 +342,17 @@ public class WilmaBridge {
         String tomorrow = sdf.format(cal.getTime());
 
         JSONArray result = new JSONArray();
-        for (String[] student : students) {
+        for (String[] student : cachedStudents) {
             String num  = student[0];
             String name = student[1];
             try {
                 String raw = httpGet(baseUrl + "/!" + num + "/overview");
+                // If we got a login page, session expired — re-login once
+                if (looksLikeLoginPage(raw)) {
+                    resetCookies();
+                    doLogin(baseUrl, username, password);
+                    raw = httpGet(baseUrl + "/!" + num + "/overview");
+                }
                 JSONObject ov = new JSONObject(raw);
                 result.put(parseStudentData(ov, name, num, today, tomorrow));
             } catch (Exception e) {

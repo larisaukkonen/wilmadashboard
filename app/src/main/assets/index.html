@@ -211,7 +211,6 @@ body.light .col:nth-child(5) .col-head { border-color:#c62828; background:rgba(1
 .col-body {
   overflow-y:auto; overflow-x:hidden;
   padding:8px 12px 14px;
-  position:relative;
   -webkit-overflow-scrolling:touch;
 }
 
@@ -965,8 +964,8 @@ function renderStudents(students) {
     })(heads[j], j);
   }
 
-  // Delay so offsetHeight is readable before measuring
-  setTimeout(layoutGrid, 60);
+  // Longer delay for slow Android 4.x device — DOM needs time to lay out
+  setTimeout(layoutGrid, 200);
 }
 
 /** Convert ISO date "2025-04-09" to e.g. "TORSTAI 09.04.2025" (fi) or "THURSDAY 09.04." (en) */
@@ -1121,8 +1120,9 @@ function init() {
     } catch(e) {}
   }
 
-  startPolling();
+  // Fetch immediately then start the poll interval
   doFetch();
+  startPolling();
 }
 
 setTimeout(init, 150);
